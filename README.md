@@ -1,4 +1,4 @@
-ClarityAI project for CS 6320 
+# ClarityAI project for CS 6320 
 
 Mithun Balasubramanian
 
