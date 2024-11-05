@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Box, Button, Input, VStack, Text, Heading, useToast, Icon, Flex, List, ListItem } from "@chakra-ui/react";
 import { FiUpload } from "react-icons/fi";
+import { useRouter } from 'next/navigation';
 
 const FileUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -25,29 +27,51 @@ const FileUpload: React.FC = () => {
     });
 
     try {
-      const response = await fetch("/api/upload", {
+      // Upload files
+      const uploadResponse = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
+      if (!uploadResponse.ok) {
         throw new Error("File upload failed");
       }
 
+      const uploadResult = await uploadResponse.json();
+
+      // Process files with OpenAI
+      const processResponse = await fetch("/api/process", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ files: uploadResult.files }),
+      });
+
+      if (!processResponse.ok) {
+        throw new Error("Processing failed");
+      }
+
+      const processResult = await processResponse.json();
+
+      console.log("OpenAI GPT Call Output:", processResult);
+
       toast({
         title: "Success",
-        description: "Files uploaded successfully!",
+        description: "Files uploaded and processing started!",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
+
+      // Redirect to results page
+      router.push(`/results/${processResult.threadId}`);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("An unknown error occurred");
       }
-      // Clear files if upload fails
       setFiles([]);
     } finally {
       setIsSubmitting(false);

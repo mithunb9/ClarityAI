@@ -9,12 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.8.2",
+    "@chakra-ui/react": "^2.10.3",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "aws-sdk": "^2.1691.0",
-    "framer-motion": "^11.9.0",
-    "next": "14.2.13",
+    "framer-motion": "^11.11.11",
+    "next": "^15.0.2",
+    "openai": "^4.71.0",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.3.0"
