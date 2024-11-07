@@ -1,65 +1,35 @@
-import OpenAI from 'openai';
 import { processPDF } from '@/lib/openai';
+import { NextRequest, NextResponse } from 'next/server';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { files } = await req.json();
-
-    if (!files || files.length === 0) {
-      console.error("No files provided to process.");
-      return new Response(
-        JSON.stringify({ error: "No files provided to process." }),
+    const pdfUrl = request.nextUrl.searchParams.get('pdfUrl');
+    console.log(pdfUrl)
+    if (!pdfUrl) {
+      return NextResponse.json(
+        { error: "PDF URL is required" },
         { status: 400 }
       );
     }
-
-    console.log("Files to process:", files);
-
-    const assistant = await openai.beta.assistants.create({
-      name: "Study Material Processor",
-      instructions: "Generate study questions based on the provided materials. Focus on key concepts and create a mix of multiple choice and open-ended questions.",
-      model: "gpt-4-turbo-preview",
-    });
-
-    const thread = await openai.beta.threads.create();
-
-    await openai.beta.threads.messages.create(thread.id, {
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: "Please generate study questions based on these materials."
-        },
-        {
-          type: "text",
-          text: `File IDs: ${files.map((file: any) => file.key).join(', ')}`
-        }
-      ]
-    });
-
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: assistant.id,
-    });
-
-    console.log("OpenAI GPT Call Output:", run);
-
-    return new Response(
-      JSON.stringify({ 
-        message: "Processing started",
-        threadId: thread.id,
-        runId: run.id
-      }),
-      { status: 200 }
-    );
+    
+    console.log("Attempting to process PDF from URL:", pdfUrl);
+    
+    const parsedOutput = await processPDF(pdfUrl);
+    
+    console.log("PDF processed successfully");
+    
+    return NextResponse.json(parsedOutput, { status: 200 });
+ 
   } catch (error) {
     console.error("Error processing files:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to process files." }),
+    return NextResponse.json(
+      { 
+        error: "Failed to process files.",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
-} 
+} export async function GET(request: NextRequest) {
+  return new NextResponse('Hello, World!');
+}
