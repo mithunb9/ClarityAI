@@ -48,6 +48,7 @@ export async function POST(req: Request) {
           Bucket: process.env.AWS_S3_BUCKET_NAME || '',
           Key: key,
           Body: buffer,
+          ContentType: file.type,
         };
 
         const uploadResult = await s3.upload(params).promise();

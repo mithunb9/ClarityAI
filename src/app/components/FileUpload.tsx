@@ -39,13 +39,11 @@ const FileUpload: React.FC = () => {
 
       const uploadResult = await uploadResponse.json();
 
+      console.log("Upload Result:", uploadResult);
+
       // Process files with OpenAI
-      const processResponse = await fetch("/api/process", {
+      const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(uploadResult.files[0].url)}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ files: uploadResult.files }),
       });
 
       if (!processResponse.ok) {

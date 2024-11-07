@@ -1,96 +1,112 @@
 import OpenAI from 'openai';
 import axios from 'axios';
-import {zodResponseFormat} from "openai/helpers/zod";
-import z from "zod";
+import { zodResponseFormat } from 'openai/helpers/zod';
+import * as z from 'zod';
 import pdf from 'pdf-parse';
+import AWS from 'aws-sdk';
+
+const s3 = new AWS.S3();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 const AnswerChoice = z.object({
-    correct: z.boolean(),
-    content: z.string(),
-})
+  correct: z.boolean(),
+  content: z.string(),
+});
 
 const Question = z.object({
-    question: z.string(),
-    answer_choices: z.array(AnswerChoice),
-})
+  question: z.string(),
+  answer_choices: z.array(AnswerChoice),
+});
 
 const Quiz = z.object({
-    questions: z.array(Question),
-})
+  questions: z.array(Question),
+});
 
-export const processPDF = async (pdfUrl: string) => {
-    let pdfContent;
-    
+async function extractPdfContent(bucketName: string, fileKey: string): Promise<string> {
+    if (!fileKey) throw new Error('Invalid PDF URL');
+
     try {
-        if (!pdfUrl) {
-            throw new Error("PDF URL is required");
-        }
-
-        // Fetch PDF from URL
-        const response = await axios.get(pdfUrl, {
-            responseType: 'arraybuffer'
-        });
-        const pdfBuffer = Buffer.from(response.data);
-
-        // Parse PDF with error handling
-        const pdfData = await pdf(pdfBuffer);
+        console.log(`Attempting to retrieve file from bucket: ${bucketName}, key: ${fileKey}`);
         
-        if (!pdfData || !pdfData.text) {
-            throw new Error("Failed to extract text from PDF");
+        // Retrieve the PDF from S3 as a buffer
+        const data = await s3.getObject({ Bucket: bucketName, Key: fileKey }).promise();
+        console.log('PDF retrieved successfully');
+
+        // Use pdf-parse to extract text from the PDF buffer
+        const pdfData = await pdf(data.Body as Buffer);
+        const pdfContent = pdfData.text.trim();
+
+        return pdfContent;
+
+    } catch (error: any) {
+        if (error.code === 'NoSuchBucket') {
+            console.error('Bucket does not exist:', bucketName);
+        } else if (error.code === 'NoSuchKey') {
+            console.error('File not found at key:', fileKey);
+        } else if (error.code === 'AccessDenied') {
+            console.error('Access denied to bucket or file. Check IAM permissions.');
+        } else {
+            console.error('Error reading PDF:', error);
         }
-
-        pdfContent = pdfData.text.trim(); // Remove extra whitespace
-
-        if (!pdfContent) {
-            throw new Error("Extracted PDF content is empty");
-        }
-
-        console.log("Successfully extracted PDF content length:", pdfContent.length);
-
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4-turbo-preview", 
-            messages: [
-                { 
-                    role: "system", 
-                    content: "You are a test writer who can write questions based on a pdf given. Create multiple choice questions with 4 options each, where only one option is correct." 
-                },
-                {
-                    role: "user",
-                    content: `Analyze the following PDF content and create multiple choice questions based on the key concepts (no questions about the title or metadata): ${pdfContent}`,
-                }
-            ],
-            response_format: zodResponseFormat(Quiz, "event"),
-        });
-
-        if (!completion || !completion.choices || !completion.choices[0] || !completion.choices[0].message || !completion.choices[0].message.content) {
-            throw new Error("Invalid response from OpenAI");
-        }
-
-        return completion.choices[0].message.content;
-
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error("Axios error:", error.response?.status, error.response?.statusText);
-            if (error.response?.status === 404) {
-                throw new Error(`PDF not found at URL: ${pdfUrl}`);
-            } else if (error.response?.status === 403) {
-                throw new Error(`Access denied to PDF at URL: ${pdfUrl}`);
-            } else {
-                throw new Error(`Error fetching PDF: ${error.message}`);
-            }
-        }
-
-        console.error("PDF processing error:", error);
         throw error;
     }
+}
+
+  
+
+export const processPDF = async (pdfUrl: string) => {
+  try {
+    if (!pdfUrl) {
+      throw new Error('PDF URL is required');
+    }
+
+    const fileKey = 'uploads/1731020277819-study.pdf';
+    const pdfContent = await extractPdfContent('nlpbucketmithun', fileKey);
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a test writer who can write questions based on a PDF given. Create multiple choice questions with 4 options each, where only one option is correct.',
+        },
+        {
+          role: 'user',
+          content: `Analyze the following PDF content and create multiple choice questions based on the key concepts (no questions about the title or metadata): ${pdfContent}`,
+        },
+      ],
+      response_format: zodResponseFormat(Quiz, 'quiz'),
+    });
+
+    const messageContent = completion?.choices?.[0]?.message?.content;
+    if (!messageContent) {
+      throw new Error('Invalid response from OpenAI');
+    }
+
+    return messageContent;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.status, error.response?.statusText);
+      if (error.response?.status === 404) {
+        throw new Error(`PDF not found at URL: ${pdfUrl}`);
+      } else if (error.response?.status === 403) {
+        throw new Error(`Access denied to PDF at URL: ${pdfUrl}`);
+      } else {
+        throw new Error(`Error fetching PDF: ${error.message}`);
+      }
+    }
+
+    console.error('PDF processing error:', error);
+    throw error;
+  }
 };
 
 // example usage
-// processPDF('https://uploading-file.s3.us-east-2.amazonaws.com/uploads/1731006989738-study.pdf').then(result => {
+// processPDF('https://example.com/path/to/pdf').then(result => {
 //     if (result) {
 //         const resultObj = JSON.parse(result);
 //         console.log(JSON.stringify(resultObj, null, 2));
