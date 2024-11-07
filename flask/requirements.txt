@@ -1,0 +1,16 @@
+boto3==1.35.56
+botocore==1.35.56
+cffi==1.17.1
+charset-normalizer==3.4.0
+cryptography==43.0.3
+jmespath==1.0.1
+pdfminer.six==20231228
+pdfplumber==0.11.4
+pillow==11.0.0
+pycparser==2.22
+pypdfium2==4.30.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
+s3transfer==0.10.3
+six==1.16.0
+urllib3==1.26.20
