@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { processPDF } from '@/lib/openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
