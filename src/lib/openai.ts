@@ -2,10 +2,6 @@ import OpenAI from 'openai';
 import axios from 'axios';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import * as z from 'zod';
-import pdf from 'pdf-parse';
-import AWS from 'aws-sdk';
-
-const s3 = new AWS.S3();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -90,14 +86,3 @@ export const processPDF = async (fileKey: string) => {
   }
 };
 
-// example usage
-// processPDF('https://example.com/path/to/pdf').then(result => {
-//     if (result) {
-//         const resultObj = JSON.parse(result);
-//         console.log(JSON.stringify(resultObj, null, 2));
-//     } else {
-//         console.error("No result returned from the PDF processing.");
-//     }
-// }).catch(error => {
-//     console.error("Error in processing PDF:", error);
-// });

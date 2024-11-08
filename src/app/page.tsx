@@ -1,4 +1,4 @@
-import Navbar from "./components/Navbar"; // Ensure the file name and path are correct
+// import Navbar from "./components/Navbar"; 
 import FileUpload from "./components/FileUpload";
 
 const Home: React.FC = () => {

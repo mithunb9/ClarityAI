@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, VStack, Heading, Text, Spinner, Button, useToast } from "@chakra-ui/react";
+import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
 
 interface Question {
@@ -17,7 +17,6 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const params = useParams();
   const router = useRouter();
-  const toast = useToast();
 
   const pollResults = async () => {
     try {
@@ -35,6 +34,7 @@ export default function ResultsPage() {
       } else {
         throw new Error("Processing failed");
       }
+/* eslint-disable @typescript-eslint/no-unused-vars */
     } catch (err) {
       setError("Failed to load questions");
       setLoading(false);

@@ -1,16 +1,17 @@
 import OpenAI from 'openai';
+import { NextRequest } from 'next/server';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function GET(req: Request, { params }: { params: { threadId: string } }) {
+export async function GET(request: NextRequest) {
   try {
-    const { threadId } = await params;
+    const threadId = request.nextUrl.searchParams.get('threadId') || '';
 
     console.log("Fetching results for thread:", threadId);
 
-    const thread = await openai.beta.threads.retrieve(threadId);
+    // const thread = await openai.beta.threads.retrieve(threadId);
     const messages = await openai.beta.threads.messages.list(threadId);
 
     const lastAssistantMessage = messages.data
@@ -36,7 +37,6 @@ export async function GET(req: Request, { params }: { params: { threadId: string
       }),
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Error fetching results:", error);
     return new Response(
@@ -46,8 +46,8 @@ export async function GET(req: Request, { params }: { params: { threadId: string
   }
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function parseQuestionsFromMessage(message: any) {
-  // This is a simple parser - you might need to adjust based on your Assistant's output format
   const questions = [];
   
   if (message.content && Array.isArray(message.content)) {
