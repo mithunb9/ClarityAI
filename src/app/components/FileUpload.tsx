@@ -41,8 +41,16 @@ const FileUpload: React.FC = () => {
 
       console.log("Upload Result:", uploadResult);
 
+      toast({
+        title: "Success",
+        description: "Files uploaded and processing started!",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+
       // Process files with OpenAI
-      const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(uploadResult.files[0].url)}`, {
+      const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(uploadResult.files[0].key)}`, {
         method: "POST",
       });
 
@@ -56,14 +64,14 @@ const FileUpload: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Files uploaded and processing started!",
+        description: "File processing finished!",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
 
       // Redirect to results page
-      router.push(`/results/${processResult.threadId}`);
+      // router.push(`/results/${processResult.threadId}`);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

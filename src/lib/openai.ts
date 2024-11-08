@@ -25,49 +25,34 @@ const Quiz = z.object({
   questions: z.array(Question),
 });
 
-async function extractPdfContent(bucketName: string, fileKey: string): Promise<string> {
-    if (!fileKey) throw new Error('Invalid PDF URL');
-
-    try {
-        console.log(`Attempting to retrieve file from bucket: ${bucketName}, key: ${fileKey}`);
-        
-        // Retrieve the PDF from S3 as a buffer
-        const data = await s3.getObject({ Bucket: bucketName, Key: fileKey }).promise();
-        console.log('PDF retrieved successfully');
-
-        // Use pdf-parse to extract text from the PDF buffer
-        const pdfData = await pdf(data.Body as Buffer);
-        const pdfContent = pdfData.text.trim();
-
-        return pdfContent;
-
-    } catch (error: any) {
-        if (error.code === 'NoSuchBucket') {
-            console.error('Bucket does not exist:', bucketName);
-        } else if (error.code === 'NoSuchKey') {
-            console.error('File not found at key:', fileKey);
-        } else if (error.code === 'AccessDenied') {
-            console.error('Access denied to bucket or file. Check IAM permissions.');
-        } else {
-            console.error('Error reading PDF:', error);
-        }
-        throw error;
-    }
-}
-
-  
-
-export const processPDF = async (pdfUrl: string) => {
+export const processPDF = async (fileKey: string) => {
   try {
-    if (!pdfUrl) {
+    if (!fileKey) {
       throw new Error('PDF URL is required');
     }
 
-    const fileKey = 'uploads/1731020277819-study.pdf';
-    const pdfContent = await extractPdfContent('nlpbucketmithun', fileKey);
+    const response = await fetch('http://127.0.0.1:5000/extract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ file_key: fileKey }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Failed to extract PDF text: ${errorData}`);
+    }
+
+    const data = await response.json();
+    if (!data.text) {
+      throw new Error('No text content returned from PDF extraction');
+    }
+
+    const pdfContent = data.text;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
@@ -92,9 +77,9 @@ export const processPDF = async (pdfUrl: string) => {
     if (axios.isAxiosError(error)) {
       console.error('Axios error:', error.response?.status, error.response?.statusText);
       if (error.response?.status === 404) {
-        throw new Error(`PDF not found at URL: ${pdfUrl}`);
+        throw new Error(`PDF not found at URL: ${fileKey}`);
       } else if (error.response?.status === 403) {
-        throw new Error(`Access denied to PDF at URL: ${pdfUrl}`);
+        throw new Error(`Access denied to PDF at URL: ${fileKey}`);
       } else {
         throw new Error(`Error fetching PDF: ${error.message}`);
       }
