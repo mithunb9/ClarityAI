@@ -7,7 +7,7 @@ CORS(app)
 
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({'message': 'Welcome to the Flask API'})
+    return jsonify({'message': 'Welcome to the Clarity API'})
 
 @app.route('/extract', methods=['POST'])
 def extract():

@@ -27,7 +27,7 @@ export const processPDF = async (fileKey: string) => {
       throw new Error('PDF URL is required');
     }
 
-    const response = await fetch('http://127.0.0.1:5000/extract', {
+    const response = await fetch(`${process.env.FLASK_API_URL}/extract`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,4 +85,3 @@ export const processPDF = async (fileKey: string) => {
     throw error;
   }
 };
-
