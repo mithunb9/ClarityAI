@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google";
-import { createOrUpdateUser } from "@/lib/db";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { getClient } from "@/lib/mongodb";
 
 const handler = NextAuth({
   providers: [
@@ -9,17 +10,23 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!
     })
   ],
+//   adapter: MongoDBAdapter(getClient()),
   callbacks: {
-    async signIn({ user }) {
-      try {
-        console.log('SignIn callback triggered for user:', user.email);
-        await createOrUpdateUser(user);
-        return true;
-      } catch (error) {
-        console.error("Error during sign in:", error);
-        return false;
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
       }
+      return token;
+    },
+    session: async ({ session, token }) => {
+      if (session?.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
     }
+  },
+  session: {
+    strategy: "jwt"
   }
 });
 
