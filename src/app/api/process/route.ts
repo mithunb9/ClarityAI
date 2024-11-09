@@ -1,8 +1,18 @@
 import { processPDF } from '@/lib/openai';
 import { NextRequest, NextResponse } from 'next/server';
-
+import { getServerSession } from "next-auth/next";
+import { authOptions } from '../auth/[...nextauth]/route';
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const pdfUrl = request.nextUrl.searchParams.get('pdfUrl');
     console.log(pdfUrl)
     if (!pdfUrl) {
@@ -14,7 +24,7 @@ export async function POST(request: NextRequest) {
     
     console.log("Attempting to process PDF from URL:", pdfUrl);
     
-    const parsedOutput = await processPDF(pdfUrl);
+    const parsedOutput = await processPDF(pdfUrl, session.user.id);
     
     console.log("PDF processed successfully");
     
