@@ -1,25 +1,8 @@
 import OpenAI from 'openai';
 import axios from 'axios';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import * as z from 'zod';
+import { Quiz, openai } from '../models/model';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const AnswerChoice = z.object({
-  correct: z.boolean(),
-  content: z.string(),
-});
-
-const Question = z.object({
-  question: z.string(),
-  answer_choices: z.array(AnswerChoice),
-});
-
-const Quiz = z.object({
-  questions: z.array(Question),
-});
 
 export const processPDF = async (fileKey: string) => {
   try {
