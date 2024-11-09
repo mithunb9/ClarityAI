@@ -2,9 +2,12 @@ import OpenAI from 'openai';
 import axios from 'axios';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { Quiz, openai } from '../models/model';
+import { MongoClient } from "mongodb";
 
+const client = new MongoClient(process.env.MONGODB_URI!);
+const db = client.db("clarity");
 
-export const processPDF = async (fileKey: string) => {
+export const processPDF = async (fileKey: string, userId: string) => {
   try {
     if (!fileKey) {
       throw new Error('PDF URL is required');
@@ -50,6 +53,14 @@ export const processPDF = async (fileKey: string) => {
     if (!messageContent) {
       throw new Error('Invalid response from OpenAI');
     }
+
+    await db.collection('files').insertOne({
+      userId,
+      fileKey,
+      text: pdfContent,
+      createdAt: new Date(),
+      quiz: messageContent,
+    });
 
     return messageContent;
   } catch (error) {

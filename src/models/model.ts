@@ -10,12 +10,12 @@ interface File {
 }
 
 interface User {
-    name: string;
+    id?: string;
+    name?: string | null;
     email: string;
-    image?: string;
-    createdAt: Date;
-    updatedAt: Date;
-    lastSignIn: Date;
+    image?: string | null;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 // Zod Schemas
