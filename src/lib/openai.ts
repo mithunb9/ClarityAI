@@ -13,6 +13,8 @@ export const processPDF = async (fileKey: string, userId: string) => {
       throw new Error('PDF URL is required');
     }
 
+    console.log('Sending request to Flask API:', `${process.env.FLASK_API_URL}/extract`);
+    
     const response = await fetch(`${process.env.FLASK_API_URL}/extract`, {
       method: 'POST',
       headers: {
@@ -23,6 +25,11 @@ export const processPDF = async (fileKey: string, userId: string) => {
 
     if (!response.ok) {
       const errorData = await response.text();
+      console.error('Flask API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
       throw new Error(`Failed to extract PDF text: ${errorData}`);
     }
 
@@ -64,17 +71,6 @@ export const processPDF = async (fileKey: string, userId: string) => {
 
     return messageContent;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.status, error.response?.statusText);
-      if (error.response?.status === 404) {
-        throw new Error(`PDF not found at URL: ${fileKey}`);
-      } else if (error.response?.status === 403) {
-        throw new Error(`Access denied to PDF at URL: ${fileKey}`);
-      } else {
-        throw new Error(`Error fetching PDF: ${error.message}`);
-      }
-    }
-
     console.error('PDF processing error:', error);
     throw error;
   }
