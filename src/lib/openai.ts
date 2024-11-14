@@ -61,7 +61,7 @@ export const processPDF = async (fileKey: string, userId: string) => {
       throw new Error('Invalid response from OpenAI');
     }
 
-    await db.collection('files').insertOne({
+    const result = await db.collection('files').insertOne({
       userId,
       fileKey,
       text: pdfContent,
@@ -69,7 +69,10 @@ export const processPDF = async (fileKey: string, userId: string) => {
       quiz: messageContent,
     });
 
-    return messageContent;
+    return {
+      quiz: messageContent,
+      fileId: result.insertedId.toString()
+    };
   } catch (error) {
     console.error('PDF processing error:', error);
     throw error;
