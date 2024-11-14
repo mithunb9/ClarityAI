@@ -30,7 +30,7 @@ const AnswerChoice = z.object({
 
 const Question = z.object({
     question: z.string(),
-    answer_choices: z.array(AnswerChoice),  
+    answer_choices: z.array(AnswerChoice), 
 });
 
 const Quiz = z.object({
