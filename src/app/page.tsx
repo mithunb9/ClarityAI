@@ -3,15 +3,17 @@
 import { useSession } from "next-auth/react";
 import FileUpload from "./components/FileUpload";
 import { 
-  Box, 
   Container, 
   VStack, 
   Heading, 
   Text, 
   Button, 
-  useColorModeValue 
+  useColorModeValue,
+  Grid,
+  GridItem
 } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
+import FileHistory from "./components/FileHistory";
 
 const Home: React.FC = () => {
   const { data: session } = useSession();
@@ -53,7 +55,14 @@ const Home: React.FC = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <FileUpload />
+      <Grid templateColumns="repeat(2, 1fr)" gap={8}>
+        <GridItem>
+          <FileUpload />
+        </GridItem>
+        <GridItem>
+          <FileHistory userId={session.user.id} />
+        </GridItem>
+      </Grid>
     </Container>
   );
 };
