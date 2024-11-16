@@ -1,29 +1,37 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, Button } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 interface FileHistoryItemProps {
+  id: string;
   name: string;
-  type: string;
   uploadedAt?: string;
 }
 
-const FileHistoryItem: React.FC<FileHistoryItemProps> = ({ name, type, uploadedAt }) => {
+const FileHistoryItem: React.FC<FileHistoryItemProps> = ({ id, name, uploadedAt }) => {
+  const router = useRouter();
+
   return (
-    <Box 
+    <Button
       p={4}
+      width="100%"
+      height="auto"
+      display="block"
+      textAlign="left"
       borderWidth="1px"
       borderRadius="lg"
       boxShadow="sm"
       _hover={{ boxShadow: "md" }}
+      onClick={() => router.push(`/results/${id}`)}
+      variant="outline"
     >
       <Text fontWeight="bold">{name}</Text>
-      <Text fontSize="sm" color="gray.500">Type: {type}</Text>
       {uploadedAt && (
         <Text fontSize="sm" color="gray.500">
           Uploaded: {new Date(uploadedAt).toLocaleDateString()}
         </Text>
       )}
-    </Box>
+    </Button>
   );
 };
 
-export default FileHistoryItem; 
+export default FileHistoryItem;

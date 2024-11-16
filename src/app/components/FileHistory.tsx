@@ -9,10 +9,14 @@ interface FileHistoryProps {
 }
 
 interface FileRecord {
-    key: string;
-    name: string;
-    type: string;
-    uploadedAt: string;
+  _id: string;
+  fileKey: string;
+  name: string;
+  type: string;
+  createdAt: string;
+  userId: string;
+  text?: string;
+  quiz?: string;
 }
 
 const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
@@ -36,7 +40,9 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
       }
     };
 
-    fetchFiles();
+    if (userId) {
+      fetchFiles();
+    }
   }, [userId]);
 
   if (isLoading) {
@@ -63,11 +69,11 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
       ) : (
         <VStack spacing={4} align="stretch">
           {files.map((file) => (
-            <FileHistoryItem
-              key={file.key}
-              name={file.name}
-              type={file.type}
-              uploadedAt={file.uploadedAt}
+            <FileHistoryItem  
+              key={file._id}
+              id={file._id}
+              name={file.name || file.fileKey.split('/').pop() || 'Unnamed file'}
+              uploadedAt={file.createdAt}
             />
           ))}
         </VStack>
