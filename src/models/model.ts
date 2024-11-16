@@ -1,4 +1,3 @@
-import { MongoClient } from 'mongodb';
 import { z } from 'zod';
 import OpenAI from 'openai';
 

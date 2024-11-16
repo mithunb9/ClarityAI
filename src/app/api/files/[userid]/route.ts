@@ -9,8 +9,8 @@ export async function GET(
   { params }: { params: { userid: string } }
 ) {
   try {
-    const userId = params.userid;
-    
+    const userId = params?.userid;
+
     if (!userId) {
       return new Response(
         JSON.stringify({ error: "User ID is required" }),

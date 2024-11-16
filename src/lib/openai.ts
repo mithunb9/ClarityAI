@@ -1,5 +1,3 @@
-import OpenAI from 'openai';
-import axios from 'axios';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { Quiz, openai } from '../models/model';
 import { MongoClient } from "mongodb";

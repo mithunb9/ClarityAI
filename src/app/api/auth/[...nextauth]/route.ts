@@ -1,11 +1,11 @@
-import NextAuth, { NextAuthOptions, Account, Profile, User } from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google";
 import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db("clarity");
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -13,7 +13,7 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       if (!user.email) return false;
 
       try {

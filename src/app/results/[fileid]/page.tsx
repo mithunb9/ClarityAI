@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -23,7 +23,7 @@ export default function ResultsPage() {
   const params = useParams();
   const router = useRouter();
 
-  const fetchResults = async () => {
+  const fetchResults = useCallback(async () => {
     try {
       const response = await fetch(`/api/results/${params.fileid}`);
       if (!response.ok) throw new Error("Failed to fetch results");
@@ -35,14 +35,15 @@ export default function ResultsPage() {
       setQuiz(data.quiz);
       setLoading(false);
     } catch (err) {
+      console.error("Error fetching results:", err);
       setError("Failed to load quiz questions");
       setLoading(false);
     }
-  };
+  }, [params.fileid]);
 
   useEffect(() => {
     fetchResults();
-  }, [params.fileid]);
+  }, [fetchResults]);
 
   if (loading) {
     return (
