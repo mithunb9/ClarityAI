@@ -2,9 +2,16 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pdf import extract_pdf_text_from_s3
 import traceback
+import whisper
+import os
+import tempfile
+from pathlib import Path
+
 
 app = Flask(__name__)
 CORS(app)
+
+MODEL = whisper.load_model("base")
 
 @app.route('/', methods=['GET'])
 def home():
@@ -31,6 +38,24 @@ def extract():
         print(f"Error in extract endpoint: {str(e)}")
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
+
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file provided'}), 400
+
+    audio_file = request.files['audio']
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir) / "audio.webm"
+        audio_file.save(temp_path)
+
+        try:
+            result = MODEL.transcribe(str(temp_path))
+            return jsonify({'text': result['text'].strip()})
+        except Exception as e:
+            return jsonify({'error': 'Failed to transcribe audio'}), 500
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
