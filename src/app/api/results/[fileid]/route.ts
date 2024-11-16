@@ -9,19 +9,19 @@ export async function GET(
   { params }: { params: { fileid: string } }
 ) {
   try {
-    const fileId = params.fileid;
+    const { fileid } = await params;
     
-    if (!fileId) {
+    if (!fileid) {
       return new Response(
         JSON.stringify({ error: "File ID is required" }),
         { status: 400 }
       );
     }
 
-    console.log("Fetching results for file:", fileId);
+    console.log("Fetching results for file:", fileid);
 
     const file = await db.collection('files').findOne({
-      _id: new ObjectId(fileId)
+      _id: new ObjectId(fileid)
     });
 
     if (!file) {
