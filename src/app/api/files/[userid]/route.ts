@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { userid: string } }
 ) {
   try {
-    const userId = params?.userid;
+    const userId = await params?.userid;
 
     if (!userId) {
       return new Response(
