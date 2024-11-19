@@ -5,7 +5,7 @@ import { MongoClient } from "mongodb";
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db("clarity");
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
