@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
+import RecordButton from "@/app/components/RecordButton";
 
 interface Question {
   question: string;
@@ -80,6 +81,7 @@ export default function ResultsPage() {
     <Box maxW="800px" mx="auto" p={6}>
       <VStack spacing={8} align="stretch">
         <Heading textAlign="center">Your Quiz Questions</Heading>
+        <RecordButton />
         {quiz.questions.map((question, index) => (
           <Box key={index} p={6} borderWidth={1} borderRadius="lg" boxShadow="md">
             <Text fontWeight="bold" mb={4}>

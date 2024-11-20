@@ -11,7 +11,7 @@ from pathlib import Path
 app = Flask(__name__)
 CORS(app)
 
-MODEL = whisper.load_model("base")
+model = whisper.load_model("turbo")
 
 @app.route('/', methods=['GET'])
 def home():
@@ -41,6 +41,7 @@ def extract():
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
+
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
 
@@ -51,12 +52,12 @@ def transcribe_audio():
         audio_file.save(temp_path)
 
         try:
-            result = MODEL.transcribe(str(temp_path))
-            return jsonify({'text': result['text'].strip()})
-        except Exception as e:
+            transcribed_audio = model.transcribe(temp_path)
+            print(f'Transcribed text: {transcribed_audio["text"].strip()}')
+            return jsonify({'text': transcribed_audio['text'].strip()})
+        except Exception as e:  
             return jsonify({'error': 'Failed to transcribe audio'}), 500
     
 
 if __name__ == '__main__':
     app.run(debug=True)
-
