@@ -27,7 +27,7 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await fetch(`/api/files/${userId}`);
+        const response = await fetch(`/api/files?userid=${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch files');
         }

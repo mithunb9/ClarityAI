@@ -25,7 +25,7 @@ export default function ResultsPage() {
 
   const fetchResults = useCallback(async () => {
     try {
-      const response = await fetch(`/api/results/${params.fileid}`);
+      const response = await fetch(`/api/results/?fileid=${params.fileid}`);
       if (!response.ok) throw new Error("Failed to fetch results");
       
       const data = await response.json();
