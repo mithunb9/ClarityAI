@@ -52,6 +52,7 @@ const AuthButton: React.FC = () => {
       size="md"
       fontWeight="medium"
       leftIcon={
+        // eslint-disable-next-line @next/next/no-img-element
         <img 
           src="https://authjs.dev/img/providers/google.svg" 
           alt="Google" 

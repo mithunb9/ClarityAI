@@ -1,19 +1,29 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from '@/lib/auth';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db("clarity");
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userid: string } }
 ) {
   try {
-    const userId = params?.userid;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = request.nextUrl.searchParams.get('userid');
 
     if (!userId) {
-      return new Response(
-        JSON.stringify({ error: "User ID is required" }),
+      return NextResponse.json(
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
@@ -27,26 +37,22 @@ export async function GET(
       _id: file._id.toString(),
       fileKey: file.fileKey,
       name: file.name || file.fileKey.split('/').pop(),
-      type: file.type || 'application/pdf',
+      type: file.type || 'application/pdf', 
       createdAt: file.createdAt.toISOString(),
       userId: file.userId,
       text: file.text,
       quiz: file.quiz
     }));
 
-    return new Response(
-      JSON.stringify(transformedFiles),
-      { 
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    return NextResponse.json(transformedFiles, { status: 200 });
+
   } catch (error) {
     console.error("Error fetching files:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch files" }),
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch files",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

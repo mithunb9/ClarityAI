@@ -39,6 +39,7 @@ const Home: React.FC = () => {
             colorScheme="blue"
             onClick={() => signIn("google")}
             leftIcon={
+              // eslint-disable-next-line @next/next/no-img-element
               <img 
                 src="https://authjs.dev/img/providers/google.svg" 
                 alt="Google" 

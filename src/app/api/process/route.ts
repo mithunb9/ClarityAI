@@ -1,7 +1,8 @@
 import { processPDF } from '@/lib/openai';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
