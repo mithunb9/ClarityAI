@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
+import QuizComponent from "@/app/components/Quiz";
 
 interface Question {
   question: string;
@@ -80,16 +81,7 @@ export default function ResultsPage() {
     <Box maxW="800px" mx="auto" p={6}>
       <VStack spacing={8} align="stretch">
         <Heading textAlign="center">Your Quiz Questions</Heading>
-        {quiz.questions.map((question, index) => (
-          <Box key={index} p={6} borderWidth={1} borderRadius="lg" boxShadow="md">
-            <Text fontWeight="bold" mb={4}>
-              {index + 1}. {question.question}
-            </Text>
-            {question.answer_choices.map((choice, choiceIndex) => (
-              <Text key={choiceIndex}>{String.fromCharCode(65 + choiceIndex)}. {choice.content}</Text>
-            ))} 
-          </Box>
-        ))}
+        <QuizComponent quiz={quiz} />
         <Button 
           colorScheme="blue" 
           onClick={() => router.push("/")}
