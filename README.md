@@ -27,4 +27,4 @@ NEXT_PUBLIC_BASE_URL=
 
 Then, run `npm install` to install all the dependencies.
 
-After, installing the dependencies you can run `npm run dev` to start the project. You can then access the frontend Next.js project at `[localhost:3000](https://localhost:3000/)`
+After, installing the dependencies you can run `npm run dev` to start the project. You can then access the frontend Next.js project at [localhost:3000](https://localhost:3000/)
