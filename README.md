@@ -45,6 +45,9 @@ source venv/bin/activate
 
 Windows:
 ```
+cd server
+python -m venv venv
+.\venv\Scripts\activate
 ```
 
 Then install the required dependencies with
