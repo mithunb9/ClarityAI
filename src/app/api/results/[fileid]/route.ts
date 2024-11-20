@@ -6,10 +6,9 @@ const db = client.db("clarity");
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fileid: string } }
 ) {
   try {
-    const { fileid } = await params;
+    const fileid = request.nextUrl.searchParams.get('fileid');
     
     if (!fileid) {
       return new Response(

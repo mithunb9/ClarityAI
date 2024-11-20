@@ -1,10 +1,5 @@
-import NextAuth, { NextAuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google";
-import { MongoClient } from "mongodb";
+import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth";
-
-const client = new MongoClient(process.env.MONGODB_URI!);
-const db = client.db("clarity");
 
 const handler = NextAuth(authOptions);
 
