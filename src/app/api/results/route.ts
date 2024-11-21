@@ -41,6 +41,12 @@ export async function GET(
 
     console.log("Questions retrieved:", questions);
 
+    // Update last accessed timestamp
+    await db.collection('files').updateOne(
+      { _id: new ObjectId(fileid) },
+      { $set: { lastAccessed: new Date() } }
+    );
+
     return new Response(
       JSON.stringify({
         quiz: questions
