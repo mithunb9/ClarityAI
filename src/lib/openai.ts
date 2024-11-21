@@ -7,6 +7,8 @@ const db = client.db("clarity");
 
 export const processPDF = async (fileKey: string, userId: string) => {
   try {
+    console.log('Starting PDF processing with fileKey:', fileKey);
+    
     if (!fileKey) {
       throw new Error('PDF URL is required');
     }
@@ -21,6 +23,8 @@ export const processPDF = async (fileKey: string, userId: string) => {
       body: JSON.stringify({ file_key: fileKey }),
     });
 
+    console.log('Flask API response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Flask API Error:', {
@@ -32,9 +36,7 @@ export const processPDF = async (fileKey: string, userId: string) => {
     }
 
     const data = await response.json();
-    if (!data.text) {
-      throw new Error('No text content returned from PDF extraction');
-    }
+    console.log('Extracted text length:', data.text?.length || 0);
 
     const pdfContent = data.text;
 
@@ -72,7 +74,7 @@ export const processPDF = async (fileKey: string, userId: string) => {
       fileId: result.insertedId.toString()
     };
   } catch (error) {
-    console.error('PDF processing error:', error);
+    console.error('PDF processing error details:', error);
     throw error;
   }
 };
