@@ -10,7 +10,7 @@ In order to run this project you need [Python3](https://www.python.org/downloads
 
 #### Client Setup
 
-In the root folder of your project you need to create a .env file with the following contents.
+In the root folder of your project you need to create a .env file with the following contents. There should be a .env file in the server folder as well.
 
 ```
 AWS_ACCESS_KEY_ID=
