@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/lib/auth';
 
@@ -54,6 +54,57 @@ export async function GET(
         error: "Failed to fetch files",
         details: error instanceof Error ? error.message : 'Unknown error'
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const fileId = request.nextUrl.searchParams.get('fileid');
+    if (!fileId) {
+      return NextResponse.json(
+        { error: "File ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const { name } = await request.json();
+    
+    if (!name) {
+      return NextResponse.json(
+        { error: "Name is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await db.collection('files').updateOne(
+      { _id: new ObjectId(fileId) },
+      { $set: { name } }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { error: "File not found" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error updating file name:', error);
+    return NextResponse.json(
+      { error: "Failed to update file name" },
       { status: 500 }
     );
   }
