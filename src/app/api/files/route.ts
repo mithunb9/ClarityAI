@@ -39,6 +39,7 @@ export async function GET(
       name: file.name || file.fileKey.split('/').pop(),
       type: file.type || 'application/pdf', 
       createdAt: file.createdAt.toISOString(),
+      lastAccessed: file.lastAccessed?.toISOString() || file.createdAt.toISOString(),
       userId: file.userId,
       text: file.text,
       quiz: file.quiz
