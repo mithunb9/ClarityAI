@@ -1,84 +1,160 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Box, Text, VStack, Heading } from "@chakra-ui/react";
-import FileHistoryItem from "./FileHistoryItem";
+import { 
+  Text, 
+  Button, 
+  useToast,
+  Card,
+  CardBody,
+  CardHeader,
+  Heading,
+  SimpleGrid,
+  Flex,
+  Input,
+  IconButton
+} from '@chakra-ui/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 
 interface FileHistoryProps {
   userId: string;
 }
 
-interface FileRecord {
+interface File {
   _id: string;
-  fileKey: string;
   name: string;
-  type: string;
   createdAt: string;
-  userId: string;
-  text?: string;
-  quiz?: string;
+  quiz: string;
 }
 
 const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
-  const [files, setFiles] = useState<FileRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
+  const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
         const response = await fetch(`/api/files?userid=${userId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch files');
-        }
+        if (!response.ok) throw new Error('Failed to fetch files');
         const data = await response.json();
         setFiles(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load files');
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: `Failed to load files: ${(error as Error).message}`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchFiles();
+    fetchFiles();
+  }, [userId, toast]);
+
+  const handleRename = async (fileId: string, currentName: string) => {
+    setEditingId(fileId);
+    setNewName(currentName);
+  };
+
+  const saveNewName = async (fileId: string) => {
+    try {
+      const response = await fetch(`/api/files/${fileId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newName }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update name');
+
+      setFiles(files.map(file => 
+        file._id === fileId ? { ...file, name: newName } : file
+      ));
+      
+      toast({
+        title: 'Success',
+        description: 'Quiz name updated',
+        status: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to update quiz name: ${(error as Error).message}`,
+        status: 'error',
+        duration: 3000,
+      });
+    } finally {
+      setEditingId(null);
     }
-  }, [userId]);
+  };
 
-  if (isLoading) {
-    return (
-      <Box p={4}>
-        <Text>Loading files...</Text>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box p={4}>
-        <Text color="red.500">Error: {error}</Text>
-      </Box>
-    );
-  }
+  if (loading) return <Text>Loading...</Text>;
+  if (files.length === 0) return <Text>No quizzes found</Text>;
 
   return (
-    <Box p={4}>
-      <Heading size="md" mb={4}>File History</Heading>
-      {files.length === 0 ? (
-        <Text>No files uploaded yet</Text>
-      ) : (
-        <VStack spacing={4} align="stretch">
-          {files.map((file) => (
-            <FileHistoryItem  
-              key={file._id}
-              id={file._id}
-              name={file.name || file.fileKey.split('/').pop() || 'Unnamed file'}
-              uploadedAt={file.createdAt}
-            />
-          ))}
-        </VStack>
-      )}
-    </Box>
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+      {files.map((file) => (
+        <Card key={file._id} bg="blue.50" borderRadius="xl" boxShadow="md">
+          <CardHeader>
+            {editingId === file._id ? (
+              <Flex gap={2}>
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  size="sm"
+                />
+                <IconButton
+                  aria-label="Save name"
+                  icon={<CheckIcon />}
+                  size="sm"
+                  colorScheme="green"
+                  onClick={() => saveNewName(file._id)}
+                />
+                <IconButton
+                  aria-label="Cancel"
+                  icon={<CloseIcon />}
+                  size="sm"
+                  onClick={() => setEditingId(null)}
+                />
+              </Flex>
+            ) : (
+              <Flex justify="space-between" align="center">
+                <Heading size="md">{file.name}</Heading>
+                <IconButton
+                  aria-label="Edit name"
+                  icon={<EditIcon />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleRename(file._id, file.name)}
+                />
+              </Flex>
+            )}
+          </CardHeader>
+          <CardBody>
+            <Text mb={4} color="gray.600">
+              Created: {new Date(file.createdAt).toLocaleDateString()}
+            </Text>
+            <Button 
+              colorScheme="blue"
+              width="full"
+              onClick={() => router.push(`/results/${file._id}`)}
+            >
+              View Quiz
+            </Button>
+          </CardBody>
+        </Card>
+      ))}
+    </SimpleGrid>
   );
 };
 
