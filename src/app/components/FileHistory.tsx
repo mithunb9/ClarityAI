@@ -67,7 +67,7 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
 
   const saveNewName = async (fileId: string) => {
     try {
-      const response = await fetch(`/api/files/${fileId}`, {
+      const response = await fetch(`/api/files?fileid=${fileId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
