@@ -4,52 +4,78 @@ import { useState } from "react";
 import { Box, Button, Input, VStack, Text, Heading, useToast, Icon, Flex, List, ListItem } from "@chakra-ui/react";
 import { FiUpload } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { chunkFile } from "@/utils/fileChunking";
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB max file size
+
 const FileUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const router = useRouter();
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const selectedFiles = Array.from(e.target.files);
+      const oversizedFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE);
+      
+      if (oversizedFiles.length > 0) {
+        toast({
+          title: "File too large",
+          description: `Maximum file size is 50MB. Please reduce file size or split the document.`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+      setFiles(selectedFiles);
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
 
     try {
-      // Upload files
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const uploadResults = [];
+      
+      for (const file of files) {
+        const chunks = await chunkFile(file);
+        const totalChunks = chunks.length;
+        const uploadedChunks = [];
+        
+        for (let i = 0; i < totalChunks; i++) {
+          const formData = new FormData();
+          formData.append("chunk", chunks[i]);
+          formData.append("chunkIndex", i.toString());
+          formData.append("totalChunks", totalChunks.toString());
+          formData.append("fileName", file.name);
+          formData.append("fileType", file.type);
 
-      if (!uploadResponse.ok) {
-        throw new Error("File upload failed");
+          const uploadResponse = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Chunk ${i + 1} upload failed`);
+          }
+
+          const result = await uploadResponse.json();
+          uploadedChunks.push(result);
+          setUploadProgress(Math.round(((i + 1) / totalChunks) * 100));
+        }
+
+        // Get the final file URL from the last chunk response
+        const finalResult = uploadedChunks[uploadedChunks.length - 1];
+        uploadResults.push(finalResult);
       }
 
-      const uploadResult = await uploadResponse.json();
-
-      console.log("Upload Result:", uploadResult);
-
-      toast({
-        title: "Success",
-        description: "Files uploaded and processing started!",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      // Process files with OpenAI
-      const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(uploadResult.files[0].key)}`, {
+      // Continue with processing
+      const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(uploadResults[0].key)}`, {
         method: "POST",
       });
 
@@ -70,7 +96,7 @@ const FileUpload: React.FC = () => {
       });
 
       // Redirect to results page
-      router.push(`/results/${processResult.fileId}`);
+      router.push(`/results?fileid=${processResult.fileId}`);
       
     } catch (err) {
       if (err instanceof Error) {
@@ -141,6 +167,9 @@ const FileUpload: React.FC = () => {
               </ListItem>
             ))}
           </List>
+          {isSubmitting && (
+            <Text>{uploadProgress}% uploaded</Text>
+          )}
         </VStack>
       </Box>
     </Flex>
