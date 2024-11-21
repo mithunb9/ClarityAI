@@ -4,6 +4,7 @@ const nextConfig = {
     domains: ['lh3.googleusercontent.com', 'authjs.dev'],
   },
   webpack: (config) => {
+    config.cache = false;
     config.externals = [...config.externals, 'canvas', 'jsdom'];
     return config;
   },
