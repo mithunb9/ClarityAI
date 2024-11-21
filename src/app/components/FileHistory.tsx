@@ -104,7 +104,7 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
   return (
     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
       {files.map((file) => (
-        <Card key={file._id} bg="blue.50" borderRadius="xl" boxShadow="md">
+        <Card key={file._id} bg="white" borderRadius="xl" boxShadow="md">
           <CardHeader>
             {editingId === file._id ? (
               <Flex gap={2}>
