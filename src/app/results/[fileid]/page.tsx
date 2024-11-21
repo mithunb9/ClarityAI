@@ -1,38 +1,42 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
-import { useParams, useRouter } from "next/navigation";
-import QuizComponent from "@/app/components/Quiz";
+import { useState, useCallback, useEffect } from 'react';
+import { Box, Text, Button, Spinner } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
-interface Question {
+interface QuizQuestion {
+  id: string;
   question: string;
-  answer_choices: {
-    correct: boolean;
-    content: string;
-  }[];
+  answer: string;
+  userAnswer?: string;
 }
 
 interface QuizResponse {
-  questions: Question[];
+  quiz: {
+    id: string;
+    title: string;
+    questions: QuizQuestion[];
+  };
 }
 
-export default function ResultsPage() {
+interface ResultsPageProps {
+  fileid?: string;
+}
+
+export default function ResultsPage({ fileid }: ResultsPageProps) {
   const [quiz, setQuiz] = useState<QuizResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const params = useParams();
   const router = useRouter();
 
   const fetchResults = useCallback(async () => {
+    if (!fileid) return;
+    
     try {
-      const response = await fetch(`/api/results/?fileid=${params.fileid}`);
+      const response = await fetch(`/api/results/?fileid=${fileid}`);
       if (!response.ok) throw new Error("Failed to fetch results");
       
       const data = await response.json();
-
-      console.log(data)
-      
       setQuiz(data.quiz);
       setLoading(false);
     } catch (err) {
@@ -40,7 +44,7 @@ export default function ResultsPage() {
       setError("Failed to load quiz questions");
       setLoading(false);
     }
-  }, [params.fileid]);
+  }, [fileid]);
 
   useEffect(() => {
     fetchResults();
@@ -66,30 +70,10 @@ export default function ResultsPage() {
     );
   }
 
-  if (!quiz) {
-    return (
-      <Box textAlign="center" py={20}>
-        <Text>No questions available</Text>
-        <Button onClick={() => router.push("/")} mt={4}>
-          Upload Another File
-        </Button>
-      </Box>
-    );
-  }
-
   return (
-    <Box maxW="800px" mx="auto" p={6}>
-      <VStack spacing={8} align="stretch">
-        <Heading textAlign="center">Your Quiz Questions</Heading>
-        <QuizComponent quiz={quiz} />
-        <Button 
-          colorScheme="blue" 
-          onClick={() => router.push("/upload")}
-          mx="auto"
-        >
-          Create Another Quiz
-        </Button>
-      </VStack>
+    <Box>
+      {/* Add your quiz rendering logic here */}
+      {JSON.stringify(quiz)}
     </Box>
   );
 } 
