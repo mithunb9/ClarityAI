@@ -9,5 +9,5 @@ export default function Results() {
 
   if (!fileid) return null;
 
-  return <ResultsPage fileid={fileid} />;
+  return <ResultsPage params={{ fileid }} />;
 }
