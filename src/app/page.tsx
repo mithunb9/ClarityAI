@@ -9,8 +9,8 @@ import {
   VStack,
   Button,
 } from "@chakra-ui/react";
-import MainTabs from "./components/MainTabs";
 import { signIn } from "next-auth/react";
+import FileHistory from "./components/FileHistory";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -39,10 +39,10 @@ export default function Home() {
     <Container maxW="container.xl" py={10}>
       <VStack spacing={6} align="stretch">
         <Box textAlign="center">
-          <Heading>Welcome to ClarityAI</Heading>
-          <Text mt={2}>Upload your documents and create quizzes instantly</Text>
+          <Heading>My Quizzes</Heading>
+          <Text mt={2}>View and manage your quizzes</Text>
         </Box>
-        <MainTabs userId={session.user.id} />
+        <FileHistory userId={session.user.id} />
       </VStack>
     </Container>
   );
