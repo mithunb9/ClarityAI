@@ -1,71 +1,49 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import FileUpload from "./components/FileUpload";
 import { 
   Container, 
-  VStack, 
+  Box, 
   Heading, 
-  Text, 
-  Button, 
-  useColorModeValue,
-  Grid,
-  GridItem
+  Text,
+  VStack,
+  Button,
 } from "@chakra-ui/react";
+import MainTabs from "./components/MainTabs";
 import { signIn } from "next-auth/react";
-import FileHistory from "./components/FileHistory";
 
-const Home: React.FC = () => {
-  const { data: session } = useSession();
-  const bgColor = useColorModeValue('gray.50', 'gray.900');
+export default function Home() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Container maxW="container.xl" py={10}>
+        <Text>Loading...</Text>
+      </Container>
+    );
+  }
 
   if (!session) {
     return (
-      <Container maxW="container.xl" py={20}>
-        <VStack 
-          spacing={8} 
-          bg={bgColor} 
-          p={10} 
-          borderRadius="xl" 
-          boxShadow="sm"
-          textAlign="center"
-        >
-          <Heading size="2xl">Welcome to ClarityAI</Heading>
-          <Text fontSize="xl" color="gray.600">
-            Please sign in to continue
-          </Text>
-          <Button
-            size="lg"
-            colorScheme="blue"
-            onClick={() => signIn("google")}
-            leftIcon={
-              // eslint-disable-next-line @next/next/no-img-element
-              <img 
-                src="https://authjs.dev/img/providers/google.svg" 
-                alt="Google" 
-                style={{ width: '20px', height: '20px' }}
-              />
-            }
-          >
-            Sign in with Google
-          </Button>
+      <Container maxW="container.xl" py={10}>
+        <VStack spacing={6}>
+          <Heading>Welcome to ClarityAI</Heading>
+          <Text>Please sign in to continue</Text>
+          <Button onClick={() => signIn("google")}>Sign in with Google</Button>
         </VStack>
       </Container>
     );
   }
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Grid templateColumns="repeat(2, 1fr)" gap={8}>
-        <GridItem>
-          <FileUpload />
-        </GridItem>
-        <GridItem>
-          <FileHistory userId={session.user.id} />
-        </GridItem>
-      </Grid>
+    <Container maxW="container.xl" py={10}>
+      <VStack spacing={6} align="stretch">
+        <Box textAlign="center">
+          <Heading>Welcome to ClarityAI</Heading>
+          <Text mt={2}>Upload your documents and create quizzes instantly</Text>
+        </Box>
+        <MainTabs userId={session.user.id} />
+      </VStack>
     </Container>
   );
-};
-
-export default Home;
+}
