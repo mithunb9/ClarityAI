@@ -17,8 +17,6 @@ export async function GET(
       );
     }
 
-    console.log("Fetching results for file:", fileid);
-
     const file = await db.collection('files').findOne({
       _id: new ObjectId(fileid)
     });
@@ -39,8 +37,6 @@ export async function GET(
 
     const questions = JSON.parse(file.quiz);
 
-    console.log("Questions retrieved:", questions);
-
     // Update last accessed timestamp
     await db.collection('files').updateOne(
       { _id: new ObjectId(fileid) },
@@ -49,7 +45,8 @@ export async function GET(
 
     return new Response(
       JSON.stringify({
-        quiz: questions
+        quiz: questions,
+        name: file.name
       }),
       { status: 200 }
     );
