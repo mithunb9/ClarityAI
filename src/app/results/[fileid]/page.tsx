@@ -84,7 +84,7 @@ export default function ResultsPage() {
         <QuizComponent quiz={quiz} />
         <Button 
           colorScheme="blue" 
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/upload")}
           mx="auto"
         >
           Create Another Quiz
