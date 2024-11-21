@@ -21,7 +21,7 @@ const FileHistoryItem: React.FC<FileHistoryItemProps> = ({ id, name, uploadedAt 
       borderRadius="lg"
       boxShadow="sm"
       _hover={{ boxShadow: "md" }}
-      onClick={() => router.push(`/results/${id}`)}
+      onClick={() => router.push(`/results?fileid=${id}`)}
       variant="outline"
     >
       <Text fontWeight="bold">{name}</Text>

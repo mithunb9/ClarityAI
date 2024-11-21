@@ -164,7 +164,7 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
                   <Button
                     colorScheme="blue"
                     size="sm"
-                    onClick={() => router.push(`/results/${file._id}`)}
+                    onClick={() => router.push(`/results?fileid=${file._id}`)}
                   >
                     View Quiz
                   </Button>
