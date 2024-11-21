@@ -6,12 +6,12 @@ import {
   useToast,
   Card,
   CardBody,
-  CardHeader,
+  // CardHeader,
   Heading,
-  SimpleGrid,
   Flex,
   Input,
-  IconButton
+  IconButton,
+  VStack
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -26,6 +26,7 @@ interface File {
   name: string;
   createdAt: string;
   quiz: string;
+  lastAccessed?: string;
 }
 
 const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
@@ -102,59 +103,77 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
   if (files.length === 0) return <Text>No quizzes found</Text>;
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-      {files.map((file) => (
-        <Card key={file._id} bg="white" borderRadius="xl" boxShadow="md">
-          <CardHeader>
-            {editingId === file._id ? (
-              <Flex gap={2}>
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  size="sm"
-                />
-                <IconButton
-                  aria-label="Save name"
-                  icon={<CheckIcon />}
-                  size="sm"
-                  colorScheme="green"
-                  onClick={() => saveNewName(file._id)}
-                />
-                <IconButton
-                  aria-label="Cancel"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={() => setEditingId(null)}
-                />
-              </Flex>
-            ) : (
+    <VStack spacing={4} width="100%">
+      {files
+        .sort((a, b) => {
+          const dateA = new Date(a.lastAccessed || a.createdAt);
+          const dateB = new Date(b.lastAccessed || b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        })
+        .map((file) => (
+          <Card key={file._id} bg="white" borderRadius="xl" boxShadow="md" width="100%" pt={2}>
+            <CardBody>
               <Flex justify="space-between" align="center">
-                <Heading size="md">{file.name}</Heading>
-                <IconButton
-                  aria-label="Edit name"
-                  icon={<EditIcon />}
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleRename(file._id, file.name)}
-                />
+                <VStack align="start" spacing={1}>
+                  {editingId === file._id ? (
+                    <Flex gap={2}>
+                      <Input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        size="sm"
+                      />
+                      <IconButton
+                        aria-label="Save name"
+                        icon={<CheckIcon />}
+                        size="sm"
+                        colorScheme="green"
+                        onClick={() => saveNewName(file._id)}
+                      />
+                      <IconButton
+                        aria-label="Cancel"
+                        icon={<CloseIcon />}
+                        size="sm"
+                        onClick={() => setEditingId(null)}
+                      />
+                    </Flex>
+                  ) : (
+                    <>
+                      <Heading size="md" mb={0}>{file.name}</Heading>
+                      <Text fontSize="sm" color="gray.500">
+                        Last Accessed: {new Date(file.lastAccessed || file.createdAt).toLocaleString(undefined, {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          year: 'numeric',
+                          month: 'numeric',
+                          day: 'numeric'
+                        })}
+                      </Text>
+                    </>
+                  )}
+                </VStack>
+                <Flex gap={2}>
+                  {!editingId && (
+                    <IconButton
+                      aria-label="Edit name"
+                      icon={<EditIcon />}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRename(file._id, file.name)}
+                    />
+                  )}
+                  <Button
+                    colorScheme="blue"
+                    size="sm"
+                    onClick={() => router.push(`/results/${file._id}`)}
+                  >
+                    View Quiz
+                  </Button>
+                </Flex>
               </Flex>
-            )}
-          </CardHeader>
-          <CardBody>
-            <Text mb={4} color="gray.600">
-              Created: {new Date(file.createdAt).toLocaleDateString()}
-            </Text>
-            <Button 
-              colorScheme="blue"
-              width="full"
-              onClick={() => router.push(`/results/${file._id}`)}
-            >
-              View Quiz
-            </Button>
-          </CardBody>
-        </Card>
-      ))}
-    </SimpleGrid>
+            </CardBody>
+          </Card>
+        ))}
+    </VStack>
   );
 };
 
