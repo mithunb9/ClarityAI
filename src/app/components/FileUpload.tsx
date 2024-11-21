@@ -85,7 +85,7 @@ const FileUpload: React.FC = () => {
   };
 
   return (
-    <Flex justify="center" align="center" minHeight="80vh" p={4}>
+    <Flex justify="center" align="center" minHeight="60vh" p={4}>
       <Box p={8} borderWidth={1} borderRadius="lg" boxShadow="lg" bg="white" maxW="lg" width="100%">
         <VStack spacing={6}>
           <Heading as="h2" size="lg" textAlign="center" mb={4}>
