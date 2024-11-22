@@ -1,6 +1,7 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { Quiz, openai } from '../models/model';
 import { MongoClient } from "mongodb";
+import { chunkText } from '@/utils/textChunking';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db("clarity");
@@ -13,8 +14,6 @@ export const processPDF = async (fileKey: string, userId: string) => {
       throw new Error('PDF URL is required');
     }
 
-    console.log('Sending request to Flask API:', `${process.env.FLASK_API_URL}/extract`);
-    
     const response = await fetch(`${process.env.FLASK_API_URL}/extract`, {
       method: 'POST',
       headers: {
@@ -23,54 +22,56 @@ export const processPDF = async (fileKey: string, userId: string) => {
       body: JSON.stringify({ file_key: fileKey }),
     });
 
-    console.log('Flask API response status:', response.status);
-
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Flask API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData
-      });
       throw new Error(`Failed to extract PDF text: ${errorData}`);
     }
 
     const data = await response.json();
-    console.log('Extracted text length:', data.text?.length || 0);
-
     const pdfContent = data.text;
+    
+    // Split content into chunks
+    const textChunks = chunkText(pdfContent);
+    let allQuestions: typeof Quiz[] = [];
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a test writer who can write questions based on a PDF given. Create multiple choice questions with 4 options each, where only one option is correct.',
-        },
-        {
-          role: 'user',
-          content: `Analyze the following PDF content and create multiple choice questions based on the key concepts (no questions about the title or metadata): ${pdfContent}`,
-        },
-      ],
-      response_format: zodResponseFormat(Quiz, 'quiz'),
-    });
+    // Process each chunk
+    for (const chunk of textChunks) {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a test writer who can write both multiple choice and short answer questions based on a PDF given. Create a mix of questions where multiple choice questions have 4 options each (only one correct), and short answer questions include a correct answer and explanation.',
+          },
+          {
+            role: 'user',
+            content: `Analyze the following content and create 2-3 questions based on the key concepts: ${chunk}`,
+          },
+        ],
+        response_format: { type: "json_object" }
+      });
 
-    const messageContent = completion?.choices?.[0]?.message?.content;
-    if (!messageContent) {
-      throw new Error('Invalid response from OpenAI');
+      const messageContent = completion?.choices?.[0]?.message?.content;
+      if (!messageContent) {
+        throw new Error('Invalid response from OpenAI');
+      }
+
+      const parsedContent = JSON.parse(messageContent);
+      allQuestions = [...allQuestions, ...parsedContent.questions];
     }
+
+    const finalQuiz = { questions: allQuestions };
 
     const result = await db.collection('files').insertOne({
       userId,
       fileKey,
       text: pdfContent,
       createdAt: new Date(),
-      quiz: messageContent,
+      quiz: JSON.stringify(finalQuiz),
     });
 
     return {
-      quiz: messageContent,
+      quiz: finalQuiz,
       fileId: result.insertedId.toString()
     };
   } catch (error) {
