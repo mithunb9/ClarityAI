@@ -1,5 +1,5 @@
 import {FC, useState} from "react";
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Flex, Text, VStack } from "@chakra-ui/react";
 import { IoCheckmarkCircleOutline as Checkmark, IoCloseCircleOutline as X } from "react-icons/io5";
 
 interface AnswerChoiceProps {
@@ -10,7 +10,7 @@ interface AnswerChoiceProps {
 
 const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
     const [isClicked, setIsClicked] = useState(false);
-    const letter = String.fromCharCode(65 + index); 
+    const letter = String.fromCharCode(65 + index);
 
     return (
         <Box 
@@ -32,7 +32,7 @@ const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
                 </Flex>
                 {isClicked && (
                     correct ? 
-                        <Checkmark size={20} color="black"  /> : 
+                        <Checkmark size={20} color="black" /> : 
                         <X size={20} color="black" />
                 )}
             </Flex>
