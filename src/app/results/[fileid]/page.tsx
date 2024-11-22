@@ -7,10 +7,13 @@ import QuizComponent from "@/app/components/Quiz";
 
 interface Question {
   question: string;
+  type?: string;
   answer_choices: {
     correct: boolean;
     content: string;
   }[];
+  correct_answer?: string;
+  explanation?: string;
 }
 
 interface QuizResponse {
@@ -53,5 +56,10 @@ export default function ResultsPage({ params }: { params: { fileid: string } }) 
   if (error) return <Text color="red.500">{error}</Text>;
   if (!quiz) return null;
 
-  return <QuizComponent quiz={quiz} />;
-} 
+  return <QuizComponent quiz={{
+    questions: quiz.questions.map(q => ({
+      ...q,
+      type: (q.type || "multiple_choice") as "multiple_choice" | "short_answer"
+    }))
+  }} />;
+}
