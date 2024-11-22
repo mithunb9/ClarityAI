@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Input, VStack, Text, Heading, useToast, Icon, Flex, List, ListItem } from "@chakra-ui/react";
+import { Box, Button, Input, VStack, Text, Heading, useToast, Icon, Flex, List, ListItem, RadioGroup, Radio, Stack } from "@chakra-ui/react";
 import { FiUpload } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { chunkFile } from "@/utils/fileChunking";
@@ -14,7 +14,8 @@ const FileUpload: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const router = useRouter();
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [questionType, setQuestionType] = useState<'multiple_choice' | 'mixed'>('multiple_choice');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -66,7 +67,10 @@ const FileUpload: React.FC = () => {
 
           const result = await uploadResponse.json();
           uploadedChunks.push(result);
-          setUploadProgress(Math.round(((i + 1) / totalChunks) * 100));
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: (i + 1) / totalChunks
+          }));
         }
 
         // Get the final file URL from the last chunk response
@@ -117,6 +121,12 @@ const FileUpload: React.FC = () => {
           <Heading as="h2" size="lg" textAlign="center" mb={4}>
             Upload Your Files
           </Heading>
+          <RadioGroup onChange={(value) => setQuestionType(value as 'multiple_choice' | 'mixed')} value={questionType}>
+            <Stack direction="row" spacing={5}>
+              <Radio value="multiple_choice">Multiple Choice Only</Radio>
+              <Radio value="mixed">Mixed (Multiple Choice & Short Answer)</Radio>
+            </Stack>
+          </RadioGroup>
           <Box
             border="2px dashed"
             borderColor="gray.300"
@@ -160,15 +170,26 @@ const FileUpload: React.FC = () => {
             Upload
           </Button>
           {error && <Text color="red.500">{error}</Text>}
-          <List spacing={3} width="100%">
-            {files.map((file, index) => (
-              <ListItem key={index} p={2} borderWidth={1} borderRadius="md" borderColor="gray.200">
-                {file.name}
-              </ListItem>
-            ))}
-          </List>
-          {isSubmitting && (
-            <Text>{uploadProgress}% uploaded</Text>
+          {files.length > 0 && (
+            <List spacing={3}>
+              {files.map((file, index) => (
+                <ListItem key={index}>
+                  <Flex justify="space-between" align="center">
+                    <Text>{file.name}</Text>
+                    <Text>{((uploadProgress[file.name as keyof typeof uploadProgress] || 0) * 100).toFixed(0)}%</Text>
+                  </Flex>
+                  <Box w="100%" h="2" bg="gray.200" borderRadius="full" mt={1}>
+                    <Box
+                      w={`${(uploadProgress[file.name as keyof typeof uploadProgress] || 0) * 100}%`}
+                      h="100%"
+                      bg="blue.500"
+                      borderRadius="full"
+                      transition="width 0.3s ease-in-out"
+                    />
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
           )}
         </VStack>
       </Box>
