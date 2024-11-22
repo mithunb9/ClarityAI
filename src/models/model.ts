@@ -28,8 +28,11 @@ const AnswerChoice = z.object({
 });
 
 const Question = z.object({
+    type: z.enum(['multiple_choice', 'short_answer']),
     question: z.string(),
-    answer_choices: z.array(AnswerChoice), 
+    answer_choices: z.array(AnswerChoice).optional(),
+    correct_answer: z.string().optional(),
+    explanation: z.string().optional(),
 });
 
 const Quiz = z.object({
