@@ -55,6 +55,7 @@ const QuizComponent: FC<QuizProps> = ({ quiz }) => {
                             questionNumber={questionIndex + 1}
                             question={question.question}
                             correctAnswer={question.correct_answer || ""}
+                            keyPoints={[]}
                             explanation={question.explanation || ""}
                         />
                     )

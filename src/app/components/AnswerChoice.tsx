@@ -1,5 +1,5 @@
 import {FC, useState} from "react";
-import { Box, Flex, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import { IoCheckmarkCircleOutline as Checkmark, IoCloseCircleOutline as X } from "react-icons/io5";
 
 interface AnswerChoiceProps {
@@ -14,28 +14,41 @@ const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
 
     return (
         <Box 
-            onClick={() => {
-                setIsClicked(true);
-            }}
-            backgroundColor={isClicked ? (correct ? "green.200" : "red.200") : "transparent"}
-            p={3}
+            onClick={() => setIsClicked(true)}
+            backgroundColor={isClicked ? (correct ? "green.100" : "red.100") : "gray.50"}
+            p={4}
             borderRadius="md"
             cursor="pointer"
-            transition="background-color 0.2s"
+            transition="all 0.2s"
+            _hover={{ bg: isClicked ? undefined : "gray.100" }}
+            border="1px solid"
+            borderColor={isClicked ? (correct ? "green.300" : "red.300") : "gray.200"}
         >
             <Flex alignItems="center" justifyContent="space-between" width="100%">
-                <Flex alignItems="center">
-                    <Text fontWeight="bold" mr={3}>
+                <Flex alignItems="center" gap={3}>
+                    <Text fontSize="lg" fontWeight="medium">
                         {letter}.
                     </Text>
-                    <Text>{content}</Text>
+                    <Text fontSize="lg">{content}</Text>
                 </Flex>
                 {isClicked && (
-                    correct ? 
-                        <Checkmark size={20} color="black" /> : 
-                        <X size={20} color="black" />
+                    <Box color={correct ? "green.500" : "red.500"}>
+                        {correct ? 
+                            <Checkmark size={24} /> : 
+                            <X size={24} />
+                        }
+                    </Box>
                 )}
             </Flex>
+            {isClicked && (
+                <Text 
+                    mt={2} 
+                    color={correct ? "green.600" : "red.600"}
+                    fontSize="md"
+                >
+                    {correct ? "Correct!" : "Incorrect"}
+                </Text>
+            )}
         </Box>
     );
 };  

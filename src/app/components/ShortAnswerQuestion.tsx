@@ -7,18 +7,19 @@ interface ShortAnswerQuestionProps {
     question: string;
     correctAnswer: string;
     explanation: string;
+    keyPoints: string[];
 }
 
 const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({ 
     questionNumber,
     question, 
     correctAnswer,
-    explanation 
+    explanation,
+    keyPoints
 }) => {
     const [answer, setAnswer] = useState("");
     const [feedback, setFeedback] = useState<string | null>(null);
     const [feedbackType, setFeedbackType] = useState<"need_detail" | "incorrect" | "correct" | null>(null);
-    const [isSubmitted, setIsSubmitted] = useState(false);
     const toast = useToast();
 
     const handleSubmit = async () => {
@@ -41,7 +42,8 @@ const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({
                 body: JSON.stringify({
                     userAnswer: answer,
                     correctAnswer,
-                    question
+                    question,
+                    keyPoints
                 }),
             });
 
@@ -50,17 +52,14 @@ const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({
             
             if (data.feedback.startsWith("Need More Detail:")) {
                 setFeedbackType("need_detail");
-                setIsSubmitted(false);
             } else if (data.feedback.startsWith("Incorrect:")) {
                 setFeedbackType("incorrect");
-                setIsSubmitted(true);
             } else {
                 setFeedbackType("correct");
-                setIsSubmitted(true);
             }
-        } catch (error) {
+        } catch {
             toast({
-                title: "Error",
+                title: "Error", 
                 description: "Failed to validate answer",
                 status: "error",
                 duration: 3000,
