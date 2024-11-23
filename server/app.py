@@ -6,12 +6,21 @@ import whisper
 import os
 import tempfile
 from pathlib import Path
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import spacy
+from nltk.tokenize import sent_tokenize
+from nltk.corpus import stopwords
+import numpy as np
 
 
 app = Flask(__name__)
 CORS(app)
 
 MODEL = whisper.load_model("base")
+
+# Load SpaCy model
+nlp = spacy.load('en_core_web_lg')
 
 @app.route('/', methods=['GET'])
 def home():
@@ -55,8 +64,62 @@ def transcribe_audio():
             return jsonify({'text': result['text'].strip()})
         except Exception as e:
             return jsonify({'error': 'Failed to transcribe audio'}), 500
+
+@app.route('/validate-answer', methods=['POST'])
+def validate_answer():
+    try:
+        data = request.json
+        user_answer = data['userAnswer']
+        correct_answer = data['correctAnswer']
+        key_points = data['keyPoints']
+
+        # Calculate similarity score
+        similarity_score = calculate_similarity(user_answer, correct_answer)
+        print(f"Similarity score: {similarity_score}")
+        
+        # Analyze missing key points
+        missing_points = analyze_missing_points(user_answer, key_points)
+        
+        # Determine feedback type and message
+        if (similarity_score > 0.8):
+            feedback_type = "correct"
+            feedback = "Correct! Your answer covers the key points well."
+        elif (similarity_score > 0.5):
+            feedback_type = "need_detail"
+            feedback = f"Need More Detail: Your answer is on the right track but missing: {', '.join(missing_points)}"
+        else:
+            feedback_type = "incorrect"
+            feedback = f"Incorrect: Your answer needs improvement. Missing key points: {', '.join(missing_points)}"
+
+        return jsonify({
+            'feedback': feedback,
+            'feedbackType': feedback_type,
+            'similarityScore': similarity_score
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def calculate_similarity(text1, text2):
+    # Create TF-IDF vectors
+    vectorizer = TfidfVectorizer().fit_transform([text1, text2])
+    vectors = vectorizer.toarray()
     
+    # Calculate cosine similarity
+    return cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
+
+def analyze_missing_points(user_answer, key_points):
+    missing = []
+    doc = nlp(user_answer.lower())
+    
+    for point in key_points:
+        point_doc = nlp(point.lower())
+        max_similarity = max(token.similarity(point_doc) for token in doc)
+        
+        if max_similarity < 0.7:  # Threshold for considering a point as missing
+            missing.append(point)
+            
+    return missing
 
 if __name__ == '__main__':
     app.run(debug=True)
-
