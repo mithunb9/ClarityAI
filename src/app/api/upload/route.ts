@@ -24,58 +24,41 @@ const s3 = new AWS.S3();
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const chunk = formData.get("chunk") as Blob;
-    const chunkIndex = parseInt(formData.get("chunkIndex") as string);
-    const totalChunks = parseInt(formData.get("totalChunks") as string);
-    const fileName = formData.get("fileName") as string;
-    const fileType = formData.get("fileType") as string;
+    const file = formData.get("file") as Blob;
+    const questionType = formData.get("questionType") as string;
 
-    if (!chunk) {
+    if (!file) {
       return new Response(
-        JSON.stringify({ error: "No chunk provided." }),
+        JSON.stringify({ error: "No file provided." }),
         { status: 400 }
       );
     }
-
-    const buffer = Buffer.from(await chunk.arrayBuffer());
-    const key = `uploads/${Date.now()}-${fileName}${totalChunks > 1 ? `.part${chunkIndex}` : ''}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const key = `uploads/${Date.now()}-${file.type.split('/').pop()}`; // Use file type extension instead of name
 
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME || '',
       Key: key,
       Body: buffer,
-      ContentType: fileType,
+      ContentType: file.type,
     };
 
     const uploadResult = await s3.upload(params).promise();
 
-    // If this is the last chunk, merge all chunks
-    if (chunkIndex === totalChunks - 1) {
-      // Return the final file information
-      return new Response(
-        JSON.stringify({
-          message: "File uploaded successfully!",
-          key: uploadResult.Key,
-          url: uploadResult.Location,
-          filename: fileName
-        }),
-        { status: 200 }
-      );
-    }
-
-    // Return progress for intermediate chunks
     return new Response(
       JSON.stringify({
-        message: `Chunk ${chunkIndex + 1} of ${totalChunks} uploaded successfully`,
-        chunkIndex,
-        totalChunks
+        message: "File uploaded successfully!",
+        key: uploadResult.Key,
+        url: uploadResult.Location,
+        filename: file.type.split('/').pop(), // Use file type extension instead of name property
+        questionType
       }),
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error uploading chunk:", error);
+    console.error("Error uploading file:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to upload chunk." }),
+      JSON.stringify({ error: "Failed to upload file." }),
       { status: 500 }
     );
   }

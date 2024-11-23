@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     
     console.log("Attempting to process PDF from URL:", pdfUrl);
     
-    const parsedOutput = await processPDF(pdfUrl, session.user.id);
+    const parsedOutput = await processPDF(pdfUrl, session.user.id, request.nextUrl.searchParams.get('questionType') as 'multiple_choice' | 'short_answer');
     
     console.log("PDF processed successfully");
     
