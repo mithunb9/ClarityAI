@@ -109,3 +109,32 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = params.id;
+    
+    const result = await db.collection('files').deleteOne({
+      _id: new ObjectId(id)
+    });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { error: "Quiz not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error('Error deleting quiz:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete quiz' },
+      { status: 500 }
+    );
+  }
+}

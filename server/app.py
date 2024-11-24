@@ -75,7 +75,7 @@ def validate_answer():
 
         # Calculate similarity score
         similarity_score = calculate_similarity(user_answer, correct_answer)
-        print(f"Similarity score: {similarity_score}")
+        print
         
         # Analyze missing key points
         missing_points = analyze_missing_points(user_answer, key_points)
