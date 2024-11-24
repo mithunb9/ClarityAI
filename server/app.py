@@ -3,15 +3,22 @@ from flask_cors import CORS
 from pdf import extract_pdf_text_from_s3
 import traceback
 import whisper
-import os
 import tempfile
 from pathlib import Path
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import spacy
+from nltk.tokenize import sent_tokenize
+from nltk.corpus import stopwords
+import nltk
+nltk.download('punkt')
 
 app = Flask(__name__)
 CORS(app)
 
 MODEL = whisper.load_model("base")
+
+nlp = spacy.load('en_core_web_lg')
 
 @app.route('/', methods=['GET'])
 def home():
@@ -53,10 +60,93 @@ def transcribe_audio():
         try:
             result = MODEL.transcribe(str(temp_path))
             return jsonify({'text': result['text'].strip()})
-        except Exception as e:
+        except Exception:
             return jsonify({'error': 'Failed to transcribe audio'}), 500
-    
+
+@app.route('/validate-answer', methods=['POST'])
+def validate_answer():
+    try:
+        data = request.json
+        user_answer = data['userAnswer']
+        correct_answer = data['correctAnswer']
+        key_points = data['keyPoints']
+
+        # Calculate similarity score
+        similarity_score = calculate_similarity(user_answer, correct_answer)
+        
+        # Analyze missing key points
+        missing_points = analyze_missing_points(user_answer, key_points)
+        
+        # Determine feedback type and message
+        if similarity_score > 0.9:
+            feedback_type = "correct"
+            feedback = "Correct! Your answer covers the key points well."
+        elif similarity_score > 0.5:
+            feedback_type = "need_detail"
+            feedback = f"Need More Detail: Your answer is on the right track but missing: {', '.join(missing_points)}"
+        else:
+            feedback_type = "incorrect"
+            feedback = f"Incorrect: Your answer needs improvement. Missing key points: {', '.join(missing_points)}"
+
+        return jsonify({
+            'feedback': feedback,
+            'feedbackType': feedback_type,
+            'similarityScore': similarity_score
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def calculate_similarity(text1, text2):
+    normalized_text1 = normalize(text1)
+    print("Normalized text 1:", normalized_text1)
+    normalized_text2 = normalize(text2)
+    print("Normalized text 2:", normalized_text2)
+
+    # Get sentence embeddings
+    doc1 = nlp(normalized_text1)
+    doc2 = nlp(normalized_text2)
+
+    # Calculate semantic similarity
+    semantic_sim = doc1.similarity(doc2)
+
+    # TF-IDF for keyword importance
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = vectorizer.fit_transform([normalized_text1, normalized_text2])
+    keyword_sim = (tfidf_matrix * tfidf_matrix.T).toarray()[0][1]
+
+    # Combine scores with weights
+    final_score = (semantic_sim * 0.3) + (keyword_sim * 0.7)
+    print("Final score:", final_score)
+    return final_score
+
+def analyze_missing_points(user_answer, key_points):
+    missing = []
+    user_doc = nlp(user_answer.lower())
+
+    for point in key_points:
+        point_doc = nlp(point.lower())
+
+        # Check semantic similarity for this specific point
+        point_similarity = user_doc.similarity(point_doc)
+
+        # Extract key phrases from the point
+        point_phrases = [chunk.text.lower() for chunk in point_doc.noun_chunks]
+
+        # Check if any key phrases appear in user answer
+        phrase_match = any(
+            phrase in user_answer.lower() for phrase in point_phrases
+        )
+
+        # More nuanced threshold based on both semantic similarity and phrase matching
+        if point_similarity < 0.6 and not phrase_match:
+            missing.append(point)
+
+    return missing
+
+def normalize(text):
+    doc = nlp(text.lower())
+    return " ".join([token.lemma_ for token in doc if not token.is_punct])
 
 if __name__ == '__main__':
     app.run(debug=True)
-

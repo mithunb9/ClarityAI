@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 
 interface FileHistoryProps {
   userId: string;
@@ -99,6 +99,33 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
     }
   };
 
+  const handleDelete = async (fileId: string) => {
+    try {
+      const response = await fetch(`/api/files/${fileId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete quiz');
+
+      // Remove from UI
+      setFiles(files.filter(file => file._id !== fileId));
+      
+      toast({
+        title: 'Success',
+        description: 'Quiz deleted successfully',
+        status: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to delete quiz: ${(error as Error).message}`,
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
   if (loading) return <Text>Loading...</Text>;
   if (files.length === 0) return <Text>No quizzes found</Text>;
 
@@ -153,13 +180,23 @@ const FileHistory: React.FC<FileHistoryProps> = ({ userId }) => {
                 </VStack>
                 <Flex gap={2}>
                   {!editingId && (
-                    <IconButton
-                      aria-label="Edit name"
-                      icon={<EditIcon />}
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleRename(file._id, file.name)}
-                    />
+                    <>
+                      <IconButton
+                        aria-label="Edit name"
+                        icon={<EditIcon />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleRename(file._id, file.name)}
+                      />
+                      <IconButton
+                        aria-label="Delete quiz"
+                        icon={<DeleteIcon />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme="red"
+                        onClick={() => handleDelete(file._id)}
+                      />
+                    </>
                   )}
                   <Button
                     colorScheme="blue"

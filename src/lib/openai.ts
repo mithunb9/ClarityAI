@@ -1,4 +1,4 @@
-import { openai } from '../models/model';
+import { openai } from '@/models/model';
 import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI!);

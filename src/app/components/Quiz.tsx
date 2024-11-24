@@ -14,6 +14,7 @@ interface QuizProps {
             }>;
             correct_answer?: string;
             explanation?: string;
+            key_points?: string[]; // Add this
         }>;
     };
 }
@@ -55,7 +56,7 @@ const QuizComponent: FC<QuizProps> = ({ quiz }) => {
                             questionNumber={questionIndex + 1}
                             question={question.question}
                             correctAnswer={question.correct_answer || ""}
-                            keyPoints={[]}
+                            keyPoints={question.key_points || []} // Pass the key points here
                             explanation={question.explanation || ""}
                         />
                     )

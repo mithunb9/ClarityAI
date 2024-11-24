@@ -25,7 +25,6 @@ export default function ResultsPage({ params }: { params: { fileid: string } }) 
   const [quiz, setQuiz] = useState<QuizResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   const fetchResults = useCallback(async () => {
     try {
