@@ -60,7 +60,7 @@ def transcribe_audio():
         try:
             result = MODEL.transcribe(str(temp_path))
             return jsonify({'text': result['text'].strip()})
-        except Exception as e:
+        except Exception:
             return jsonify({'error': 'Failed to transcribe audio'}), 500
 
 @app.route('/validate-answer', methods=['POST'])
@@ -78,10 +78,10 @@ def validate_answer():
         missing_points = analyze_missing_points(user_answer, key_points)
         
         # Determine feedback type and message
-        if (similarity_score > 0.8):
+        if similarity_score > 0.8:
             feedback_type = "correct"
             feedback = "Correct! Your answer covers the key points well."
-        elif (similarity_score > 0.5):
+        elif similarity_score > 0.5:
             feedback_type = "need_detail"
             feedback = f"Need More Detail: Your answer is on the right track but missing: {', '.join(missing_points)}"
         else:
