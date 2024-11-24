@@ -3,7 +3,6 @@ from flask_cors import CORS
 from pdf import extract_pdf_text_from_s3
 import traceback
 import whisper
-import os
 import tempfile
 from pathlib import Path
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -11,15 +10,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 import spacy
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
-import numpy as np
-
+import nltk
+nltk.download('punkt')
 
 app = Flask(__name__)
 CORS(app)
 
 MODEL = whisper.load_model("base")
 
-# Load SpaCy model
 nlp = spacy.load('en_core_web_lg')
 
 @app.route('/', methods=['GET'])
@@ -75,7 +73,6 @@ def validate_answer():
 
         # Calculate similarity score
         similarity_score = calculate_similarity(user_answer, correct_answer)
-        print
         
         # Analyze missing key points
         missing_points = analyze_missing_points(user_answer, key_points)
@@ -101,22 +98,43 @@ def validate_answer():
         return jsonify({'error': str(e)}), 500
 
 def calculate_similarity(text1, text2):
-    # Create TF-IDF vectors
-    vectorizer = TfidfVectorizer().fit_transform([text1, text2])
-    vectors = vectorizer.toarray()
+    # Get sentence embeddings
+    doc1 = nlp(text1.lower())
+    doc2 = nlp(text2.lower())
     
-    # Calculate cosine similarity
-    return cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
+    # Calculate semantic similarity
+    semantic_sim = doc1.similarity(doc2)
+    
+    # TF-IDF for keyword importance
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = vectorizer.fit_transform([text1, text2])
+    keyword_sim = (tfidf_matrix * tfidf_matrix.T).toarray()[0][1]
+    
+    # Combine scores with weights
+    final_score = (semantic_sim * 0.7) + (keyword_sim * 0.3)
+    return final_score
 
 def analyze_missing_points(user_answer, key_points):
     missing = []
-    doc = nlp(user_answer.lower())
+    user_doc = nlp(user_answer.lower())
     
     for point in key_points:
         point_doc = nlp(point.lower())
-        max_similarity = max(token.similarity(point_doc) for token in doc)
         
-        if max_similarity < 0.7:  # Threshold for considering a point as missing
+        # Check semantic similarity for this specific point
+        point_similarity = user_doc.similarity(point_doc)
+        
+        # Extract key phrases from the point
+        point_phrases = [chunk.text.lower() for chunk in point_doc.noun_chunks]
+        
+        # Check if any key phrases appear in user answer
+        phrase_match = any(
+            any(chunk.text.lower() in user_answer.lower() for chunk in point_doc.noun_chunks)
+            for sent in sent_tokenize(user_answer)
+        )
+        
+        # More nuanced threshold based on both semantic similarity and phrase matching
+        if point_similarity < 0.6 and not phrase_match:
             missing.append(point)
             
     return missing
