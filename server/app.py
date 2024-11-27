@@ -78,7 +78,7 @@ def validate_answer():
         missing_points = analyze_missing_points(user_answer, key_points)
         
         # Determine feedback type and message
-        if similarity_score > 0.9:
+        if similarity_score > 0.8:
             feedback_type = "correct"
             feedback = "Correct! Your answer covers the key points well."
         elif similarity_score > 0.5:

@@ -1,6 +1,8 @@
 import { FC, useState } from "react";
 import { Box, Text, Input, Button, VStack, useToast, Flex } from "@chakra-ui/react";
 import { InfoIcon, WarningIcon, CheckIcon } from "@chakra-ui/icons";
+import RecordButton from "./RecordButton";
+import { text } from "stream/consumers";
 
 interface ShortAnswerQuestionProps {
     questionNumber: number;
@@ -97,6 +99,9 @@ const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({
                     placeholder="Type your answer here..."
                     isDisabled={feedbackType === "correct"}
                 />
+
+                <RecordButton onTranscriptionComplete={(text) => setAnswer(text)} />
+
                 {feedbackType !== "correct" && (
                     <Button 
                         colorScheme={feedbackType === "need_detail" ? "blue" : "blue"} 
