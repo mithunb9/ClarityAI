@@ -53,8 +53,10 @@ python -m venv venv
 Then install the required dependencies with
 ```
 pip3 install -r requirements.txt
+pip3 install spacy
 or
 pip install -r requirements.txt
+pip install spacy
 ```
 
 Create a .env file with these values (should be stored at server/.env):
