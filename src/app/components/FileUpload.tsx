@@ -54,6 +54,8 @@ const FileUpload: React.FC = () => {
 
       const result = await uploadResponse.json();
 
+      console.log("Backend resp:", result);
+
       // Process the uploaded file
       const processResponse = await fetch(`/api/process?pdfUrl=${encodeURIComponent(result.key)}&questionType=${questionType}`, {
         method: "POST",

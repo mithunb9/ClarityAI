@@ -20,6 +20,8 @@ interface QuizProps {
 }
 
 const QuizComponent: FC<QuizProps> = ({ quiz }) => {
+    console.log("quiz questions data", quiz.questions);
+
     return (
         <Container maxW="container.lg" py={8}>
             <VStack spacing={8} align="stretch">
