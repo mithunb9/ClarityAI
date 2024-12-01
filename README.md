@@ -31,6 +31,25 @@ Then, run `npm install` to install all the dependencies.
 
 After, installing the dependencies you can run `npm run dev` to start the project. You can then access the frontend Next.js project at [localhost:3000](https://localhost:3000/)
 
+#### Additional setup
+
+You will need to download ffmpeg, to do this, ensure [Homebrew](https://brew.sh/) is installed:
+
+MacOS:
+```
+brew install ffmpeg
+```
+
+Windows:
+
+Download ffmpeg from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/). You can download ffmpeg-git-full.7z or ffmpeg-release-full.7z. After downloading, unzip the folder and place the extracted folder into the root of C: drive. Rename the folder to ffmpeg.
+Now run command prompt as administrator and enter:
+```
+setx /m PATH "C:\ffmpeg\bin;%PATH%"
+```
+It should return `SUCCESS: Specified value was saved.`
+
+
 #### Server setup
 
 Navigate to the `server` folder of your project and create a virtualenv.
@@ -53,10 +72,8 @@ python -m venv venv
 Then install the required dependencies with
 ```
 pip3 install -r requirements.txt
-pip3 install spacy
 or
 pip install -r requirements.txt
-pip install spacy
 ```
 
 Create a .env file with these values (should be stored at server/.env):
@@ -74,5 +91,5 @@ or
 python app.py
 ```
 
-
-
+#### Updating
+When updating, make sure you update the dependencies by running `npm i` in the `root` directory and running `pip3 install -r requirements.txt` or `pip install -r requirements.txt` based on your system in the `server` directory. 

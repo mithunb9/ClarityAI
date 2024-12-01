@@ -9,6 +9,8 @@ interface AnswerChoiceProps {
 }
 
 const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
+    console.log("answer choice data", content, correct, index);
+
     const [isClicked, setIsClicked] = useState(false);
     const letter = String.fromCharCode(65 + index);
 

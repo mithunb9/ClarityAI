@@ -11,3 +11,4 @@ scikit-learn==1.5.2
 spacy==3.7.2
 en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl
 nltk==3.8.1
+pydub==0.25.1

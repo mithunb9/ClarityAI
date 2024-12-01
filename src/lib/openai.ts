@@ -28,31 +28,48 @@ export const processPDF = async (fileKey: string, userId: string, questionType: 
     const data = await response.json();
     const pdfContent = data.text;
     
+    console.log('Question Type:', questionType);
+
+    const prompt =
+      questionType === 'multiple_choice'
+      ? `Create 10 multiple choice questions based on the following content. Each question MUST have exactly 4 answer choices, with exactly one correct answer.
+          Format as:
+          {
+            type: "multiple_choice",
+            question: "question text",
+            answer_choices: [
+              { content: "answer choice 1", correct: boolean },
+               { content: "answer choice 2", correct: boolean },
+                { content: "answer choice 3", correct: boolean },
+                 { content: "answer choice 4", correct: boolean }
+            ]
+          }
+            
+          Here is the content: ${pdfContent}
+          Format the respone as a JSON object.`
+      : `Create 10 short answer questions based on the following content. Each question MUST include a detailed correct answer and explanation for grading purposes.
+          Format as:
+          {
+            type: "short_answer",
+            question: "question text",
+            correct_answer: "detailed correct answer that covers all key points",
+            explanation: "explanation of why this answer is correct and what key points to look for",
+            key_points: ["point 1", "point 2", "point 3"]
+          }
+          
+          Here is the content: ${pdfContent}
+          Format the respone as a JSON object.`;
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are a test writer creating exactly 10 questions based on provided content. 
-          ${questionType === 'multiple_choice' ? 
-            'Create only multiple choice questions. Each question MUST have exactly 4 answer choices, with exactly one correct answer.' :
-            'Create only short answer questions. Each question MUST include a detailed correct answer and explanation for grading purposes.'
-          }
-          
-          For short answer questions, format as:
-          {
-            "type": "short_answer",
-            "question": "question text",
-            "correct_answer": "detailed correct answer that covers all key points",
-            "explanation": "explanation of why this answer is correct and what key points to look for",
-            "key_points": ["point 1", "point 2", "point 3"]
-          }
-
-          Format your response as a JSON object with an array of questions.`
+          content: `You are a test writer creating exactly 10 questions based on provided content.`
         },
         {
           role: 'user',
-          content: `Analyze the following content and create exactly 10 questions based on the key concepts. Return the response as JSON: ${pdfContent}`
+          content: prompt
         }
       ],
       response_format: { type: "json_object" }
@@ -64,6 +81,9 @@ export const processPDF = async (fileKey: string, userId: string, questionType: 
     }
 
     const parsedContent = JSON.parse(messageContent);
+    
+    console.log('Questions and Answers from OpenAI:', parsedContent.questions);
+
     const finalQuiz = { questions: parsedContent.questions };
 
     const result = await db.collection('files').insertOne({
