@@ -1,5 +1,5 @@
 import { FC, useState, useRef } from "react";
-import { Button, useToast } from "@chakra-ui/react";
+import { Button, useToast, Spinner } from "@chakra-ui/react";
 import { FiMic, FiMicOff } from "react-icons/fi";
 
 interface RecordButtonProps {
@@ -8,6 +8,7 @@ interface RecordButtonProps {
 
 const RecordButton: FC<RecordButtonProps> = ({ onTranscriptionComplete }) => {
     const [recording, setRecording] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [recorderTimeout, setRecorderTimeout] = useState<NodeJS.Timeout | null>(null);
     const recorderRef = useRef<MediaRecorder | null>(null);
     const toast = useToast();
@@ -79,8 +80,10 @@ const RecordButton: FC<RecordButtonProps> = ({ onTranscriptionComplete }) => {
                         status: "error",
                         duration: 3000,
                     });
+                } finally {
+                    setIsProcessing(false);
+                    setRecording(false);
                 }
-                setRecording(false);
             };
 
             recorderRef.current = mediaRecorder;
@@ -106,6 +109,7 @@ const RecordButton: FC<RecordButtonProps> = ({ onTranscriptionComplete }) => {
 
     const stopRecording = () => {
         if (recorderRef.current && recorderRef.current.state === "recording") {
+            setIsProcessing(true);
             recorderRef.current.stop();
         }
         setRecording(false);
@@ -126,11 +130,12 @@ const RecordButton: FC<RecordButtonProps> = ({ onTranscriptionComplete }) => {
 
     return (
         <Button
-            leftIcon={recording ? <FiMicOff /> : <FiMic />}
+            leftIcon={isProcessing ? <Spinner size="sm" /> : recording ? <FiMicOff /> : <FiMic />}
             onClick={handleRecording}
             colorScheme={recording ? "red" : "blue"}
+            isDisabled={isProcessing}
         >
-            {recording ? "Stop Recording" : "Record Answer"}
+            {isProcessing ? "Processing..." : recording ? "Stop Recording" : "Record Answer"}
         </Button>
     );
 };
