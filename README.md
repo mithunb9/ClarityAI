@@ -33,7 +33,7 @@ After, installing the dependencies you can run `npm run dev` to start the projec
 
 #### Additional setup
 
-You will need to download ffmpeg, to do this, en sure [Homebrew](https://brew.sh/) is installed:
+You will need to download ffmpeg, to do this, ensure [Homebrew](https://brew.sh/) is installed:
 
 MacOS:
 ```
