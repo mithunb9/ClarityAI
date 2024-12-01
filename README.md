@@ -91,5 +91,5 @@ or
 python app.py
 ```
 
-
-
+#### Updating
+When updating, make sure you update the dependencies by running `npm i` in the `root` directory and running `pip3 install -r requirements.txt` or `pip install -r requirements.txt` based on your system in the `server` directory. 
