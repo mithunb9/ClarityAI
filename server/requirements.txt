@@ -13,4 +13,4 @@ en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_
 nltk==3.8.1
 pydub==0.25.1
 pinecone-client==3.0.2
-openai==1.12.0
+openai==1.56.0
