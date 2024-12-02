@@ -2,7 +2,6 @@ import { FC, useState } from "react";
 import { Box, Text, Input, Button, VStack, useToast, Flex } from "@chakra-ui/react";
 import { InfoIcon, WarningIcon, CheckIcon } from "@chakra-ui/icons";
 import RecordButton from "./RecordButton";
-import { text } from "stream/consumers";
 
 interface ShortAnswerQuestionProps {
     questionNumber: number;
@@ -87,6 +86,16 @@ const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({
         }
     };
 
+    const formatFeedbackText = (text: string) => {
+        let formattedText = text;
+        
+        keyPoints.forEach(point => {
+            formattedText = formattedText.replace(point, `<b>${point}</b>`);
+        });
+
+        return <span dangerouslySetInnerHTML={{ __html: formattedText }} />;
+    };
+
     return (
         <Box p={6} borderWidth={1} borderRadius="lg" boxShadow="sm" bg="white">
             <Text fontSize="xl" fontWeight="bold" mb={4}>
@@ -124,7 +133,9 @@ const ShortAnswerQuestion: FC<ShortAnswerQuestionProps> = ({
                                 {getFeedbackIcon()}
                             </Box>
                             <VStack align="stretch" spacing={2}>
-                                <Text>{feedback}</Text>
+                                <Text>
+                                    {formatFeedbackText(feedback)}
+                                </Text>
                                 {feedbackType === "incorrect" && (
                                     <Text fontWeight="medium" mt={2}>
                                         Correct Answer: {correctAnswer}
