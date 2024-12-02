@@ -11,10 +11,11 @@ interface QuizProps {
             answer_choices?: Array<{
                 content: string;
                 correct: boolean;
+                explanation?: string; // Add explanation field
             }>;
             correct_answer?: string;
             explanation?: string;
-            key_points?: string[]; // Add this
+            key_points?: string[];
         }>;
     };
 }
@@ -48,6 +49,7 @@ const QuizComponent: FC<QuizProps> = ({ quiz }) => {
                                         content={choice.content}
                                         correct={choice.correct}
                                         index={index}
+                                        explanation={choice.explanation} // Pass explanation
                                     />
                                 ))}
                             </VStack>
@@ -58,7 +60,7 @@ const QuizComponent: FC<QuizProps> = ({ quiz }) => {
                             questionNumber={questionIndex + 1}
                             question={question.question}
                             correctAnswer={question.correct_answer || ""}
-                            keyPoints={question.key_points || []} // Pass the key points here
+                            keyPoints={question.key_points || []}
                             explanation={question.explanation || ""}
                         />
                     )

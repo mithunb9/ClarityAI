@@ -30,23 +30,38 @@ export const processPDF = async (fileKey: string, userId: string, questionType: 
     
     console.log('Question Type:', questionType);
 
-    const prompt =
-      questionType === 'multiple_choice'
-      ? `Create 10 multiple choice questions based on the following content. Each question MUST have exactly 4 answer choices, with exactly one correct answer.
+    const prompt = questionType === 'multiple_choice' 
+      ? `Create 10 multiple choice questions based on the following content. Each question MUST have exactly 4 answer choices, with exactly one correct answer and explanations for incorrect answers.
           Format as:
           {
             type: "multiple_choice",
             question: "question text",
             answer_choices: [
-              { content: "answer choice 1", correct: boolean },
-               { content: "answer choice 2", correct: boolean },
-                { content: "answer choice 3", correct: boolean },
-                 { content: "answer choice 4", correct: boolean }
+              { 
+                content: "answer choice 1", 
+                correct: boolean,
+                explanation: "explanation of why this answer is incorrect (only for incorrect answers)"
+              },
+              { 
+                content: "answer choice 2", 
+                correct: boolean,
+                explanation: "explanation of why this answer is incorrect (only for incorrect answers)"
+              },
+              { 
+                content: "answer choice 3", 
+                correct: boolean,
+                explanation: "explanation of why this answer is incorrect (only for incorrect answers)"
+              },
+              { 
+                content: "answer choice 4", 
+                correct: boolean,
+                explanation: "explanation of why this answer is incorrect (only for incorrect answers)"
+              }
             ]
           }
             
           Here is the content: ${pdfContent}
-          Format the respone as a JSON object.`
+          Format the response as a JSON object.`
       : `Create 10 short answer questions based on the following content. Each question MUST include a detailed correct answer and explanation for grading purposes.
           Format as:
           {
