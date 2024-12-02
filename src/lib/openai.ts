@@ -1,5 +1,6 @@
 import { openai } from '@/models/model';
 import { MongoClient } from "mongodb";
+import { v4 as uuidv4 } from 'uuid';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db("clarity");
@@ -27,7 +28,25 @@ export const processPDF = async (fileKey: string, userId: string, questionType: 
 
     const data = await response.json();
     const pdfContent = data.text;
-    
+
+    const textData = [{
+      id: uuidv4(),
+      text: pdfContent,
+      metadata: {
+        userId,
+        fileKey,
+        timestamp: new Date().toISOString()
+      }
+    }];
+
+    const pineconeResponse = await fetch(`${process.env.FLASK_API_URL}/save-to-pinecone`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text_data: textData }),
+    });
+
     console.log('Question Type:', questionType);
 
     const prompt = questionType === 'multiple_choice' 
