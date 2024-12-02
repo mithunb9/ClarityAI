@@ -99,9 +99,7 @@ def validate_answer():
 
 def calculate_similarity(text1, text2):
     normalized_text1 = normalize(text1)
-    print("Normalized text 1:", normalized_text1)
     normalized_text2 = normalize(text2)
-    print("Normalized text 2:", normalized_text2)
 
     # Get sentence embeddings
     doc1 = nlp(normalized_text1)
@@ -123,23 +121,23 @@ def calculate_similarity(text1, text2):
 def analyze_missing_points(user_answer, key_points):
     missing = []
     user_doc = nlp(user_answer.lower())
+    user_tokens = {token.lemma_ for token in user_doc if not token.is_stop}
 
     for point in key_points:
         point_doc = nlp(point.lower())
+        point_tokens = {token.lemma_ for token in point_doc if not token.is_stop}
 
-        # Check semantic similarity for this specific point
-        point_similarity = user_doc.similarity(point_doc)
+        # Calculate token overlap ratio
+        overlap = user_tokens.intersection(point_tokens)
+        overlap_ratio = len(overlap) / len(point_tokens) if point_tokens else 0
 
-        # Extract key phrases from the point
-        point_phrases = [chunk.text.lower() for chunk in point_doc.noun_chunks]
+        # Calculate semantic similarity
+        similarity = user_doc.similarity(point_doc)
 
-        # Check if any key phrases appear in user answer
-        phrase_match = any(
-            phrase in user_answer.lower() for phrase in point_phrases
-        )
-
-        # More nuanced threshold based on both semantic similarity and phrase matching
-        if point_similarity < 0.6 and not phrase_match:
+        # Determine if the key point is covered
+        if overlap_ratio >= 0.5 or similarity >= 0.7:
+            continue  # Key point is covered
+        else:
             missing.append(point)
 
     return missing
