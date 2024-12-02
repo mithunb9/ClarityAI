@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Box, VStack, Heading, Text, Spinner, Button } from "@chakra-ui/react";
+import { Box, VStack, Heading, Text, Spinner, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
 import QuizComponent from "@/app/components/Quiz";
+import Chat from "@/app/components/Chat";
 
 interface Question {
   question: string;
@@ -55,10 +56,27 @@ export default function ResultsPage({ params }: { params: { fileid: string } }) 
   if (error) return <Text color="red.500">{error}</Text>;
   if (!quiz) return null;
 
-  return <QuizComponent quiz={{
-    questions: quiz.questions.map(q => ({
-      ...q,
-      type: (q.type || "multiple_choice") as "multiple_choice" | "short_answer"
-    }))
-  }} />;
+  return (
+    <Box>
+      <Tabs>
+        <TabList>
+          <Tab>Quiz</Tab>
+          <Tab>Chat</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <QuizComponent quiz={{
+              questions: quiz.questions.map(q => ({
+                ...q,
+                type: (q.type || "multiple_choice") as "multiple_choice" | "short_answer"
+              }))
+            }} />
+          </TabPanel>
+          <TabPanel>
+            <Chat fileId={params.fileid} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Box>
+  );
 }
