@@ -11,6 +11,7 @@ import spacy
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
 import nltk
+from rag import query_and_generate, save_to_database
 nltk.download('punkt')
 
 app = Flask(__name__)
@@ -96,6 +97,25 @@ def validate_answer():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/query', methods=['POST'])
+def query():
+    try:
+        data = request.json
+        response = query_and_generate(data['query'])
+
+        return jsonify(response)
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+@app.route('/save-to-pinecone', methods=['POST'])
+def save_to_pinecone():
+    try:
+        data = request.json
+        text_data = data.get('text_data')
+        save_to_database(text_data)
+    except Exception as e:
+        print(f"Error {str(e)}")
 
 def calculate_similarity(text1, text2):
     normalized_text1 = normalize(text1)
