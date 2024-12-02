@@ -1,4 +1,4 @@
-import {FC, useState} from "react";
+import { FC, useState } from "react";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { IoCheckmarkCircleOutline as Checkmark, IoCloseCircleOutline as X } from "react-icons/io5";
 
@@ -6,11 +6,10 @@ interface AnswerChoiceProps {
     content: string;
     correct: boolean;
     index: number;
+    explanation?: string; // Add explanation prop
 }
 
-const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
-    console.log("answer choice data", content, correct, index);
-
+const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index, explanation }) => {
     const [isClicked, setIsClicked] = useState(false);
     const letter = String.fromCharCode(65 + index);
 
@@ -42,13 +41,9 @@ const AnswerChoice: FC<AnswerChoiceProps> = ({ content, correct, index }) => {
                     </Box>
                 )}
             </Flex>
-            {isClicked && (
-                <Text 
-                    mt={2} 
-                    color={correct ? "green.600" : "red.600"}
-                    fontSize="md"
-                >
-                    {correct ? "Correct!" : "Incorrect"}
+            {isClicked && !correct && explanation && (
+                <Text mt={2} color="red.600" fontSize="md">
+                    {explanation}
                 </Text>
             )}
         </Box>
