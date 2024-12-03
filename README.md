@@ -1,5 +1,8 @@
 # ClarityAI
 
+<img width="1092" alt="image" src="https://github.com/user-attachments/assets/d16059a5-ef5d-42db-8d37-84a80d4f0d63">
+
+
 ## Project Setup
 
 ### Pre-reqs
