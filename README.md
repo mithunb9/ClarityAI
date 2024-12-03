@@ -105,7 +105,7 @@ In order to properly use S3 you need to create an S3 bucket on AWS with the corr
 When updating, make sure you update the dependencies by running `npm i` in the `root` directory and running `pip3 install -r requirements.txt` or `pip install -r requirements.txt` based on your system in the `server` directory. 
 
 
-### Demo Video
+## Demo Video
 
 [![ClarityAI Demo Video](https://img.youtube.com/vi/0fP3Ph5nx0Q/0.jpg)](https://www.youtube.com/watch?v=0fP3Ph5nx0Q)
 
